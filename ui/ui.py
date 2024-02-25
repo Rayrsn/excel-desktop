@@ -13,18 +13,6 @@ from ui.ui_form import Ui_MainWindow
 import openpyxl
 
 
-def load_excel_data(self):
-    wb = openpyxl.load_workbook("list.xlsx")
-    sheet = wb.active
-
-    self.ui.tableWidget.setRowCount(sheet.max_row)
-    self.ui.tableWidget.setColumnCount(sheet.max_column)
-
-    for i, row in enumerate(sheet.iter_rows(values_only=True)):
-        for j, value in enumerate(row):
-            self.ui.tableWidget.setItem(i, j, QTableWidgetItem(str(value)))
-
-
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
