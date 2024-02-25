@@ -9,10 +9,11 @@ from PySide6.QtWidgets import QApplication, QMainWindow
 #     pyside2-uic form.ui -o ui_form.py
 
 # from .ui_form import Ui_MainWindow
-from ui_form import Ui_MainWindow
+from ui.ui_form import Ui_MainWindow
 
 from PySide6.QtWidgets import QTableWidgetItem
 import openpyxl
+
 
 def load_excel_data(self):
     wb = openpyxl.load_workbook("list.xlsx")
@@ -26,9 +27,9 @@ def load_excel_data(self):
             self.ui.tableWidget.setItem(i, j, QTableWidgetItem(str(value)))
 
 
-
 from PySide6.QtWidgets import QMainWindow, QTableWidgetItem
 import openpyxl
+
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -51,7 +52,11 @@ class MainWindow(QMainWindow):
 
     def save_excel_data(self, row, column):
         sheet = self.wb.active
-        sheet.cell(row=row+1, column=column+1, value=self.ui.tableWidget.item(row, column).text())
+        sheet.cell(
+            row=row + 1,
+            column=column + 1,
+            value=self.ui.tableWidget.item(row, column).text(),
+        )
         self.wb.save("list.xlsx")
 
 
@@ -60,6 +65,7 @@ def run():
     widget = MainWindow()
     widget.showMaximized()
     sys.exit(app.exec())
+
 
 if __name__ == "__main__":
     run()
