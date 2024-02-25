@@ -7,10 +7,18 @@
 
 import sys
 
-from PySide6.QtWidgets import QApplication, QMainWindow, QTableWidgetItem
+from PySide6.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QTableWidgetItem,
+    QWidget,
+)
+
 from ui.ui_form import Ui_MainWindow
 
 import openpyxl
+
+exel_file = "../docs/Law Clients Excel Sheet Shared_MainV3.xlsm"
 
 
 class MainWindow(QMainWindow):
@@ -22,15 +30,28 @@ class MainWindow(QMainWindow):
         self.ui.tableWidget.cellChanged.connect(self.save_excel_data)
 
     def load_excel_data(self):
-        self.wb = openpyxl.load_workbook("list.xlsx")
-        sheet = self.wb.active
+        self.wb = openpyxl.load_workbook(exel_file)
 
-        self.ui.tableWidget.setRowCount(sheet.max_row)
-        self.ui.tableWidget.setColumnCount(sheet.max_column)
+        self.sheet_number = len(self.wb.sheetnames)
+        # create tabs
+        if self.sheet_number > 1:
+            for _ in range(self.sheet_number):
+                self.tab = QWidget()
+                self.tab.setObjectName("tab")
+                self.ui.tabWidget.addTab(self.tab, "")
 
-        for i, row in enumerate(sheet.iter_rows(values_only=True)):
-            for j, value in enumerate(row):
-                self.ui.tableWidget.setItem(i, j, QTableWidgetItem(str(value)))
+        for sh_num in range(self.sheet_number):
+            sheet_name = self.wb.sheetnames[sh_num]
+            self.ui.tableWidget.setRowCount(self.wb[sheet_name].max_row)
+            self.ui.tableWidget.setColumnCount(self.wb[sheet_name].max_column)
+
+            # Change tabs name
+            self.ui.tabWidget.setTabText(sh_num, self.wb.sheetnames[sh_num])
+
+            # set value of table from exel file
+            for i, row in enumerate(self.wb[sheet_name].iter_rows(values_only=True)):
+                for j, value in enumerate(row):
+                    self.ui.tableWidget.setItem(i, j, QTableWidgetItem(str(value)))
 
     def save_excel_data(self, row, column):
         sheet = self.wb.active
@@ -39,7 +60,7 @@ class MainWindow(QMainWindow):
             column=column + 1,
             value=self.ui.tableWidget.item(row, column).text(),
         )
-        self.wb.save("list.xlsx")
+        self.wb.save(exel_file)
 
 
 def run():
