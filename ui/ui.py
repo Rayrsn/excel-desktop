@@ -1,17 +1,15 @@
 # This Python file uses the following encoding: utf-8
-import sys
-
-from PySide6.QtWidgets import QApplication, QMainWindow
 
 # Important:
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py, or
 #     pyside2-uic form.ui -o ui_form.py
 
-# from .ui_form import Ui_MainWindow
+import sys
+
+from PySide6.QtWidgets import QApplication, QMainWindow, QTableWidgetItem
 from ui.ui_form import Ui_MainWindow
 
-from PySide6.QtWidgets import QTableWidgetItem
 import openpyxl
 
 
@@ -25,10 +23,6 @@ def load_excel_data(self):
     for i, row in enumerate(sheet.iter_rows(values_only=True)):
         for j, value in enumerate(row):
             self.ui.tableWidget.setItem(i, j, QTableWidgetItem(str(value)))
-
-
-from PySide6.QtWidgets import QMainWindow, QTableWidgetItem
-import openpyxl
 
 
 class MainWindow(QMainWindow):
