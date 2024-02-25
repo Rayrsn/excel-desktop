@@ -8,8 +8,8 @@ from PySide6.QtWidgets import QApplication, QMainWindow
 #     pyside6-uic form.ui -o ui_form.py, or
 #     pyside2-uic form.ui -o ui_form.py
 
-from .ui_form import Ui_MainWindow
-# from ui_form import Ui_MainWindow
+# from .ui_form import Ui_MainWindow
+from ui_form import Ui_MainWindow
 
 from PySide6.QtWidgets import QTableWidgetItem
 import openpyxl
