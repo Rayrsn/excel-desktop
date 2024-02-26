@@ -98,10 +98,15 @@ class MainWindow(QMainWindow):
             self.ui.tabWidget.setTabText(sh_num, self.wb.sheetnames[sh_num])
 
             # set value of table from excel file
+            headers = None
             for i, row in enumerate(self.wb[sheet_name].iter_rows(values_only=True)):
                 # if all entries in the row are None or empty, skip the row
                 if all(value is None or value == "BKP Solicitors Client Data" or str(value).strip() == "" for value in row):
                     continue  # skip this row
+                if headers is None:  # if headers haven't been set yet
+                    headers = [str(value) for value in row]  # use this row as the headers
+                    tableWidget.setHorizontalHeaderLabels(headers)  # set the headers
+                    continue  # skip the rest of this iteration
                 for j, value in enumerate(row):
                     tableWidget.setItem(i, j, QTableWidgetItem(str(value)))
 
