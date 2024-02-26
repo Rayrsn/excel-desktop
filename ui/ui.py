@@ -16,8 +16,11 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QVBoxLayout,
     QHBoxLayout,
-    QTableWidget
+    QTableWidget,
+    QLabel,
 )
+
+from PySide6.QtGui import QPixmap, QFont
 
 from ui.ui_form import Ui_MainWindow
 
@@ -36,6 +39,26 @@ class MainWindow(QMainWindow):
         self.ui.button1.clicked.connect(self.openFile)
         # clear existing tabs
         self.ui.tabWidget.clear()
+        
+        # create a new tab for the logo
+        tab = QWidget()
+        tab.setObjectName("logoTab")
+        self.ui.tabWidget.addTab(tab, "Start")
+
+        # create a QLabel for the logo
+        logoLabel = QLabel(tab)
+        logoPixmap = QPixmap('bkp_logo.jpg')
+        logoLabel.setPixmap(logoPixmap)
+        textLabel = QLabel("BKP Solicitors Client Data", tab)
+        font = QFont("Calibri", 72) 
+        textLabel.setFont(font)
+
+        # create a layout for the tab and add the logoLabel
+        hboxLayout = QHBoxLayout()
+        hboxLayout.addWidget(logoLabel)
+        hboxLayout.addWidget(textLabel)
+        tab.setLayout(hboxLayout)
+
 
     def load_excel_data(self, exel_file):
         try:
