@@ -29,6 +29,7 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         # self.load_excel_data()
+        self.ui.button21.clicked.connect(self.closeApplication)
         self.ui.button1.clicked.connect(self.openFile)
 
     def load_excel_data(self, exel_file):
@@ -90,6 +91,8 @@ class MainWindow(QMainWindow):
         )
         self.wb.save(self.exel_file)
 
+    def closeApplication(self):
+        self.close()
 
 def run():
     app = QApplication(sys.argv)
