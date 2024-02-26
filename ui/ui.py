@@ -86,6 +86,9 @@ class MainWindow(QMainWindow):
             tableWidget = QTableWidget()
             tableWidget.setRowCount(self.wb[sheet_name].max_row)
             tableWidget.setColumnCount(self.wb[sheet_name].max_column)
+            # Enable sorting
+            tableWidget.setSortingEnabled(True)
+
 
             # Add the QTableWidget to a QHBoxLayout inside a QVBoxLayout
             hboxLayout = QHBoxLayout()
