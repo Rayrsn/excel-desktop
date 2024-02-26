@@ -36,7 +36,7 @@ class MainWindow(QMainWindow):
         try:
             self.wb = openpyxl.load_workbook(exel_file)
         except:
-            self.showAlarm("Format error", "Format does not Support!")
+            self.showAlarm("Format error", "File format is not supported!")
             return
 
         self.sheet_number = len(self.wb.sheetnames)
