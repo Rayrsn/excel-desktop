@@ -14,6 +14,9 @@ from PySide6.QtWidgets import (
     QWidget,
     QFileDialog,
     QMessageBox,
+    QVBoxLayout,
+    QHBoxLayout,
+    QTableWidget
 )
 
 from ui.ui_form import Ui_MainWindow
@@ -31,6 +34,8 @@ class MainWindow(QMainWindow):
         # self.load_excel_data()
         self.ui.button21.clicked.connect(self.closeApplication)
         self.ui.button1.clicked.connect(self.openFile)
+        # clear existing tabs
+        self.ui.tabWidget.clear()
 
     def load_excel_data(self, exel_file):
         try:
@@ -40,17 +45,28 @@ class MainWindow(QMainWindow):
             return
 
         self.sheet_number = len(self.wb.sheetnames)
+
         # create tabs
         if self.sheet_number > 1:
             for _ in range(self.sheet_number):
-                self.tab = QWidget()
-                self.tab.setObjectName("tab")
-                self.ui.tabWidget.addTab(self.tab, "")
+                tab = QWidget()
+                tab.setObjectName("tab")
+                self.ui.tabWidget.addTab(tab, "")
 
         for sh_num in range(self.sheet_number):
             sheet_name = self.wb.sheetnames[sh_num]
-            self.ui.tableWidget.setRowCount(self.wb[sheet_name].max_row)
-            self.ui.tableWidget.setColumnCount(self.wb[sheet_name].max_column)
+
+            # Create a new QTableWidget for this tab
+            tableWidget = QTableWidget()
+            tableWidget.setRowCount(self.wb[sheet_name].max_row)
+            tableWidget.setColumnCount(self.wb[sheet_name].max_column)
+
+            # Add the QTableWidget to a QHBoxLayout inside a QVBoxLayout
+            hboxLayout = QHBoxLayout()
+            hboxLayout.addWidget(tableWidget)
+            vboxLayout = QVBoxLayout()
+            vboxLayout.addLayout(hboxLayout)
+            self.ui.tabWidget.widget(sh_num).setLayout(vboxLayout)
 
             # Change tabs name
             self.ui.tabWidget.setTabText(sh_num, self.wb.sheetnames[sh_num])
@@ -58,7 +74,7 @@ class MainWindow(QMainWindow):
             # set value of table from exel file
             for i, row in enumerate(self.wb[sheet_name].iter_rows(values_only=True)):
                 for j, value in enumerate(row):
-                    self.ui.tableWidget.setItem(i, j, QTableWidgetItem(str(value)))
+                    tableWidget.setItem(i, j, QTableWidgetItem(str(value)))
 
     def showAlarm(self, header, mes):
         QMessageBox.warning(self, header, mes)
