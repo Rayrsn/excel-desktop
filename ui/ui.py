@@ -68,6 +68,9 @@ class MainWindow(QMainWindow):
             return
 
         self.sheet_number = len(self.wb.sheetnames)
+        
+        # clear existing tabs
+        self.ui.tabWidget.clear()
 
         # create tabs
         if self.sheet_number > 1:
