@@ -20,7 +20,7 @@ from ui.ui_form import Ui_MainWindow
 
 import openpyxl
 
-# exel_file = "list.xlsx"
+# excel_file = "../docs/Law Clients Excel Sheet Shared_MainV3.xlsm"
 
 
 class MainWindow(QMainWindow):
