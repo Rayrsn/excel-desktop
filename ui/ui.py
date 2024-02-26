@@ -113,7 +113,7 @@ class MainWindow(QMainWindow):
             pass
 
         filePath, _ = QFileDialog.getOpenFileName(
-            self, "Open File", "", "All Files (*)"
+            self, "Open File", "", "Excel Files (*.xlsx *.xlsm)"
         )
 
         if filePath:
