@@ -12,13 +12,15 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QTableWidgetItem,
     QWidget,
+    QFileDialog,
+    QMessageBox,
 )
 
 from ui.ui_form import Ui_MainWindow
 
 import openpyxl
 
-exel_file = "../docs/Law Clients Excel Sheet Shared_MainV3.xlsm"
+# exel_file = "list.xlsx"
 
 
 class MainWindow(QMainWindow):
@@ -26,10 +28,10 @@ class MainWindow(QMainWindow):
         super().__init__(parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.load_excel_data()
-        self.ui.tableWidget.cellChanged.connect(self.save_excel_data)
+        # self.load_excel_data()
+        self.ui.button1.clicked.connect(self.openFile)
 
-    def load_excel_data(self):
+    def load_excel_data(self, exel_file):
         self.wb = openpyxl.load_workbook(exel_file)
 
         self.sheet_number = len(self.wb.sheetnames)
@@ -53,14 +55,36 @@ class MainWindow(QMainWindow):
                 for j, value in enumerate(row):
                     self.ui.tableWidget.setItem(i, j, QTableWidgetItem(str(value)))
 
+    def showAlarm(self, header, mes):
+        QMessageBox.warning(self, header, mes)
+
+    def openFile(self):
+        try:
+            if self.exel_file:
+                self.ui.tableWidget.cellChanged.disconnect(self.save_excel_data)
+        except:
+            pass
+
+        filePath, _ = QFileDialog.getOpenFileName(
+            self, "Open File", "", "All Files (*)"
+        )
+
+        if filePath:
+            self.exel_file = filePath
+            self.load_excel_data(self.exel_file)
+            self.ui.tableWidget.cellChanged.connect(self.save_excel_data)
+
     def save_excel_data(self, row, column):
+        if not self.exel_file:
+            self.showAlarm("Error", "file does not exist !")
+
         sheet = self.wb.active
         sheet.cell(
             row=row + 1,
             column=column + 1,
             value=self.ui.tableWidget.item(row, column).text(),
         )
-        self.wb.save(exel_file)
+        self.wb.save(self.exel_file)
 
 
 def run():
