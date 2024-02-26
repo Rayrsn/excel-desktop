@@ -32,7 +32,11 @@ class MainWindow(QMainWindow):
         self.ui.button1.clicked.connect(self.openFile)
 
     def load_excel_data(self, exel_file):
-        self.wb = openpyxl.load_workbook(exel_file)
+        try:
+            self.wb = openpyxl.load_workbook(exel_file)
+        except:
+            self.showAlarm("Format error", "Format does not Support!")
+            return
 
         self.sheet_number = len(self.wb.sheetnames)
         # create tabs
