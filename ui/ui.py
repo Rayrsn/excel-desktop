@@ -135,7 +135,7 @@ class MainWindow(QMainWindow):
 
     def openFile(self):
         try:
-            if self.exel_file:
+            if self.excel_file:
                 self.ui.tableWidget.cellChanged.disconnect(self.save_excel_data)
         except:
             pass
@@ -145,7 +145,7 @@ class MainWindow(QMainWindow):
         )
 
         if filePath:
-            self.exel_file = filePath
+            self.excel_file = filePath
             self.load_excel_data(self.exel_file)
             self.ui.tableWidget.cellChanged.connect(self.save_excel_data)
 
