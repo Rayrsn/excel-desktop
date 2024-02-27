@@ -1,11 +1,24 @@
 from docx import Document
+from docx.shared import Inches
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
 
 def add_dict_to_doc(doc, my_list):
+    # Add a paragraph with right alignment
+    paragraph = doc.add_paragraph()
+    paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.RIGHT
+
+    # Add logo
+    run = paragraph.add_run()
+    run.add_picture(logo_path, width=Inches(1.5))  # Adjust size as needed
+
     for value in my_list:
         if isinstance(value, list):
             # Create a table with one row and a number of columns equal to the number of items in the list
-            table = doc.add_table(rows=1, cols=len(value))
+            if all(isinstance(i, dict) for i in value):
+                table = doc.add_table(rows=1, cols=len(value) - 1)
+            else:
+                table = doc.add_table(rows=1, cols=len(value))
             table.style = "Table Grid"  # Optional: set the style of the table
             for i, item in enumerate(value):
                 # Set each item in its own cell
@@ -15,6 +28,8 @@ def add_dict_to_doc(doc, my_list):
             # If the value is not a list, just add it as a new paragraph
             doc.add_paragraph(str(value))
 
+
+logo_path = "./bkp_logo.jpg"
 
 email = ""
 file_no = ""
@@ -42,7 +57,9 @@ m_3rd_party = ""
 initial = ""
 my_dict = [
     "File Opening Form",
-    [f"E-mail: {email}", "LOGO"],
+    [
+        f"E-mail: {email}",
+    ],
     [f"Previous Number ", "CRIME"],
     [f"File No: {file_no}", f"Date Opened: {date_opened}", f"Fee Earner: {fee_earner}"],
     [
