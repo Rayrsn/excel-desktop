@@ -39,7 +39,7 @@ class MainWindow(QMainWindow):
         self.ui.button1.clicked.connect(self.openFile)
         # clear existing tabs
         self.ui.tabWidget.clear()
-        
+
         # create a new tab for the logo
         tab = QWidget()
         tab.setObjectName("logoTab")
@@ -47,10 +47,10 @@ class MainWindow(QMainWindow):
 
         # create a QLabel for the logo
         logoLabel = QLabel(tab)
-        logoPixmap = QPixmap('bkp_logo.jpg')
+        logoPixmap = QPixmap("bkp_logo.jpg")
         logoLabel.setPixmap(logoPixmap)
         textLabel = QLabel("BKP Solicitors Client Data", tab)
-        font = QFont("Calibri", 72) 
+        font = QFont("Calibri", 72)
         textLabel.setFont(font)
 
         # create a layout for the tab and add the logoLabel
@@ -58,7 +58,6 @@ class MainWindow(QMainWindow):
         hboxLayout.addWidget(logoLabel)
         hboxLayout.addWidget(textLabel)
         tab.setLayout(hboxLayout)
-
 
     def load_excel_data(self, exel_file):
         try:
@@ -68,7 +67,7 @@ class MainWindow(QMainWindow):
             return
 
         self.sheet_number = len(self.wb.sheetnames)
-        
+
         # clear existing tabs
         self.ui.tabWidget.clear()
 
@@ -89,7 +88,6 @@ class MainWindow(QMainWindow):
             # Enable sorting
             tableWidget.setSortingEnabled(True)
 
-
             # Add the QTableWidget to a QHBoxLayout inside a QVBoxLayout
             hboxLayout = QHBoxLayout()
             hboxLayout.addWidget(tableWidget)
@@ -104,10 +102,17 @@ class MainWindow(QMainWindow):
             headers = None
             for i, row in enumerate(self.wb[sheet_name].iter_rows(values_only=True)):
                 # if all entries in the row are None or empty, skip the row
-                if all(value is None or value == "BKP Solicitors Client Data" or str(value).strip() == "" for value in row):
+                if all(
+                    value is None
+                    or value == "BKP Solicitors Client Data"
+                    or str(value).strip() == ""
+                    for value in row
+                ):
                     continue  # skip this row
                 if headers is None:  # if headers haven't been set yet
-                    headers = [str(value) for value in row]  # use this row as the headers
+                    headers = [
+                        str(value) for value in row
+                    ]  # use this row as the headers
                     tableWidget.setHorizontalHeaderLabels(headers)  # set the headers
                     continue  # skip the rest of this iteration
                 for j, value in enumerate(row):
@@ -116,7 +121,11 @@ class MainWindow(QMainWindow):
             # remove empty rows
             rows_to_remove = []
             for i in range(tableWidget.rowCount()):
-                if all(tableWidget.item(i, j) is None or tableWidget.item(i, j).text() == "" for j in range(tableWidget.columnCount())):
+                if all(
+                    tableWidget.item(i, j) is None
+                    or tableWidget.item(i, j).text() == ""
+                    for j in range(tableWidget.columnCount())
+                ):
                     rows_to_remove.append(i)
             for i in reversed(rows_to_remove):
                 tableWidget.removeRow(i)
@@ -154,6 +163,7 @@ class MainWindow(QMainWindow):
 
     def closeApplication(self):
         self.close()
+
 
 def run():
     app = QApplication(sys.argv)
