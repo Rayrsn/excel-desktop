@@ -59,9 +59,9 @@ class MainWindow(QMainWindow):
         hboxLayout.addWidget(textLabel)
         tab.setLayout(hboxLayout)
 
-    def load_excel_data(self, exel_file):
+    def load_excel_data(self, excel_file):
         try:
-            self.wb = openpyxl.load_workbook(exel_file)
+            self.wb = openpyxl.load_workbook(excel_file)
         except:
             self.showAlarm("Format error", "File format is not supported!")
             return
@@ -82,15 +82,15 @@ class MainWindow(QMainWindow):
             sheet_name = self.wb.sheetnames[sh_num]
 
             # Create a new QTableWidget for this tab
-            tableWidget = QTableWidget()
-            tableWidget.setRowCount(self.wb[sheet_name].max_row)
-            tableWidget.setColumnCount(self.wb[sheet_name].max_column)
+            self.tableWidget = QTableWidget()
+            self.tableWidget.setRowCount(self.wb[sheet_name].max_row)
+            self.tableWidget.setColumnCount(self.wb[sheet_name].max_column)
             # Enable sorting
-            tableWidget.setSortingEnabled(True)
+            self.tableWidget.setSortingEnabled(True)
 
-            # Add the QTableWidget to a QHBoxLayout inside a QVBoxLayout
+            # Add the Qself.tableWidget to a QHBoxLayout inside a QVBoxLayout
             hboxLayout = QHBoxLayout()
-            hboxLayout.addWidget(tableWidget)
+            hboxLayout.addWidget(self.tableWidget)
             vboxLayout = QVBoxLayout()
             vboxLayout.addLayout(hboxLayout)
             self.ui.tabWidget.widget(sh_num).setLayout(vboxLayout)
@@ -113,22 +113,22 @@ class MainWindow(QMainWindow):
                     headers = [
                         str(value) for value in row
                     ]  # use this row as the headers
-                    tableWidget.setHorizontalHeaderLabels(headers)  # set the headers
+                    self.tableWidget.setHorizontalHeaderLabels(headers)  # set the headers
                     continue  # skip the rest of this iteration
                 for j, value in enumerate(row):
-                    tableWidget.setItem(i, j, QTableWidgetItem(str(value)))
+                    self.tableWidget.setItem(i, j, QTableWidgetItem(str(value)))
 
             # remove empty rows
             rows_to_remove = []
-            for i in range(tableWidget.rowCount()):
+            for i in range(self.tableWidget.rowCount()):
                 if all(
-                    tableWidget.item(i, j) is None
-                    or tableWidget.item(i, j).text() == ""
-                    for j in range(tableWidget.columnCount())
+                    self.tableWidget.item(i, j) is None
+                    or self.tableWidget.item(i, j).text() == ""
+                    for j in range(self.tableWidget.columnCount())
                 ):
                     rows_to_remove.append(i)
             for i in reversed(rows_to_remove):
-                tableWidget.removeRow(i)
+                self.tableWidget.removeRow(i)
 
     def showAlarm(self, header, mes):
         QMessageBox.warning(self, header, mes)
@@ -136,7 +136,7 @@ class MainWindow(QMainWindow):
     def openFile(self):
         try:
             if self.excel_file:
-                self.ui.tableWidget.cellChanged.disconnect(self.save_excel_data)
+                self.tableWidget.cellChanged.disconnect(self.save_excel_data)
         except:
             pass
 
@@ -146,20 +146,20 @@ class MainWindow(QMainWindow):
 
         if filePath:
             self.excel_file = filePath
-            self.load_excel_data(self.exel_file)
-            self.ui.tableWidget.cellChanged.connect(self.save_excel_data)
+            self.load_excel_data(self.excel_file)
+            self.tableWidget.cellChanged.connect(self.save_excel_data)
 
     def save_excel_data(self, row, column):
-        if not self.exel_file:
+        if not self.excel_file:
             self.showAlarm("Error", "file does not exist !")
 
         sheet = self.wb.active
         sheet.cell(
             row=row + 1,
             column=column + 1,
-            value=self.ui.tableWidget.item(row, column).text(),
+            value=self.tableWidget.item(row, column).text(),
         )
-        self.wb.save(self.exel_file)
+        self.wb.save(self.excel_file)
 
     def closeApplication(self):
         self.close()
