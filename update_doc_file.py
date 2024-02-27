@@ -2,6 +2,8 @@ from docx import Document
 from docx.shared import Inches
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
+from word_content import get_content
+
 
 def add_dict_to_doc(doc, my_list):
     # Add a paragraph with right alignment
@@ -31,141 +33,36 @@ def add_dict_to_doc(doc, my_list):
 
 logo_path = "./bkp_logo.jpg"
 
-email = ""
-file_no = ""
-date_opened = ""
-fee_earner = ""
-client_username = ""
-client_fornames = ""
-client_title = ""
-marital_status = ""
-letters_to_home_address = ""
-address = ""
-city = ""
-postcode = ""
-postal_address_if_different = ""
-home_telephone = ""
-work_telephone = ""
-mobile_telephone = ""
-occupation = ""
-date_of_birth = ""
-ethnicity = ""
-prison_number = ""
-national_insurance_no = ""
-matter_type = ""
-m_3rd_party = ""
-initial = ""
-my_dict = [
-    "File Opening Form",
-    [
-        f"E-mail: {email}",
-    ],
-    [f"Previous Number ", "CRIME"],
-    [f"File No: {file_no}", f"Date Opened: {date_opened}", f"Fee Earner: {fee_earner}"],
-    [
-        f"Client's surname: {client_username}",
-        f"Forename(s): {client_fornames}",
-        f"Title: {client_title}",
-    ],
-    [
-        f"Marital Status: {marital_status}",
-        f"Letters to home address: {letters_to_home_address}",
-    ],
-    [
-        f"Address: {address}\n {city}\nPostcode : {postcode}",
-        f"Postal Address (if different): {postal_address_if_different}\n Postcode{postcode}",
-    ],
-    [
-        f"Telephone",
-        f"Home: {home_telephone}",
-        f"Work: {work_telephone}",
-        f"Mobile: {mobile_telephone}",
-    ],
-    [
-        f"Occupation: {occupation}",
-        f"Date of birth: {date_of_birth}",
-    ],
-    [
-        f"Ethnicity: {ethnicity}",
-        f"prison number: {prison_number}",
-    ],
-    [
-        f"National Insurance No: {national_insurance_no}",
-        f"Surname At Birth: N/A",
-    ],
-    "",
-    "",
-    [
-        f"Matter type (full description)",
-        f"{matter_type}",
-    ],
-    [
-        f"3nd Party",
-        f"{m_3rd_party}",
-        "initial",
-        f"{initial}",
-        f"conflict",
-        f"Yes",
-        f"No",
-    ],
-    [
-        f"3nd Party",
-        f"",
-        "Date",
-        f"",
-        f"conflict",
-        f"Yes",
-        f"No",
-    ],
-    ["COSTS INFORMATION"],
-    "",
-    [
-        f"Legal Aid X",
-        f"Cost Estimate",
-        f"Private",
-        f"Cost Estimate ",
-    ],
-    "",
-    [
-        f"CHARGE BASIC",
-        f"TYPE",
-        f"COURT",
-    ],
-    [
-        f"Criminal Investigation: X",
-        f"Criminal (Magistrates, Franchise)",
-        f"Magistrates",
-    ],
-    [
-        f"Criminal Proceedings:",
-        f"Criminal (Crown)",
-        f"Crown/County",
-    ],
-    [
-        f"Public Funding Certificate",
-        f"Duty Solicitor",
-        f"High Court",
-    ],
-    [
-        f"",
-        f"Criminal Private",
-        f"Non-designated",
-    ],
-    [
-        f"",
-        f"Civil",
-        f"",
-    ],
-    [
-        f"",
-        f"",
-        f"",
-    ],
-]
+wd_var = {
+    "email": "test@email.com",
+    "file_no": "",
+    "date_opened": "",
+    "fee_earner": "",
+    "client_username": "",
+    "client_fornames": "",
+    "client_title": "",
+    "marital_status": "",
+    "letters_to_home_address": "",
+    "address": "",
+    "city": "",
+    "postcode": "",
+    "postal_address_if_different": "",
+    "home_telephone": "",
+    "work_telephone": "",
+    "mobile_telephone": "",
+    "occupation": "",
+    "date_of_birth": "",
+    "ethnicity": "",
+    "prison_number": "",
+    "national_insurance_no": "",
+    "matter_type": "",
+    "m_3rd_party": "",
+    "initial": "",
+}
 
 # Create a new Document
 doc = Document()
-add_dict_to_doc(doc, my_dict)
+add_dict_to_doc(doc, get_content(wd_var))
 
 # Save the document
 doc.save("./gen_doc.docx")
