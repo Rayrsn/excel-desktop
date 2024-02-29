@@ -43,6 +43,12 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout.addWidget(self.importbutton)
 
+        self.newentrybutton = QPushButton(self.centralwidget)
+        self.newentrybutton.setObjectName(u"newentrybutton")
+        self.newentrybutton.setMinimumSize(QSize(100, 40))
+        
+        self.horizontalLayout.addWidget(self.newentrybutton)
+
         self.exportbutton = QPushButton(self.centralwidget)
         self.exportbutton.setObjectName(u"exportbutton")
         self.exportbutton.setMinimumSize(QSize(100, 40))
@@ -105,6 +111,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
         self.importbutton.setText(QCoreApplication.translate("MainWindow", u"Import", None))
+        self.newentrybutton.setText(QCoreApplication.translate("MainWindow", u"New Entry", None))
         self.exportbutton.setText(QCoreApplication.translate("MainWindow", u"Export to Word Document", None))
         self.exitbutton.setText(QCoreApplication.translate("MainWindow", u"Exit", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("MainWindow", u"Tab 1", None))

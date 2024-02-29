@@ -18,6 +18,10 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QTableWidget,
     QLabel,
+    QPushButton,
+    QLineEdit,
+    QDialog,
+    QComboBox
 )
 
 from PySide6.QtGui import QPixmap, QFont
@@ -35,8 +39,9 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         # self.load_excel_data()
-        self.ui.button21.clicked.connect(self.closeApplication)
-        self.ui.button1.clicked.connect(self.openFile)
+        self.ui.exitbutton.clicked.connect(self.closeApplication)
+        self.ui.importbutton.clicked.connect(self.openFile)
+        self.ui.newentrybutton.clicked.connect(self.ask_for_new_entry)
         # clear existing tabs
         self.ui.tabWidget.clear()
 
@@ -161,9 +166,71 @@ class MainWindow(QMainWindow):
         )
         self.wb.save(self.excel_file)
 
+    
+    def ask_for_new_entry(self):
+        # Check if wb has been defined
+        if not hasattr(self, 'wb'):
+            self.showAlarm("Error", "Please load an Excel file first!")
+            return
+
+        # open a popup window for new entry
+        dialog = NewEntryDialog(self.wb, self)
+        if dialog.exec():
+            selected_sheet = dialog.comboBox.currentText()
+            new_entry = {column: lineEdit.text() for column, lineEdit in zip([cell.value for cell in self.wb[selected_sheet][1]], dialog.lineEdits)}
+            self.wb[selected_sheet].append(list(new_entry.values()))
+            self.wb.save(self.excel_file)
+
+            # Get the tableWidget of the currently selected tab
+            current_tab = self.ui.tabWidget.currentWidget()
+            tableWidget = current_tab.findChild(QTableWidget)
+
+            # update the table without reloading the file
+            tableWidget.setRowCount(tableWidget.rowCount() + 1)
+            for i, value in enumerate(new_entry.values()):
+                tableWidget.setItem(tableWidget.rowCount() - 1, i, QTableWidgetItem(str(value)))
+
     def closeApplication(self):
         self.close()
 
+class NewEntryDialog(QDialog):
+    def __init__(self, wb, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("New Entry")
+
+        self.layout = QVBoxLayout(self)
+
+        self.comboBox = QComboBox(self)
+        self.comboBox.addItems(wb.sheetnames)
+        self.comboBox.setCurrentText(parent.ui.tabWidget.tabText(parent.ui.tabWidget.currentIndex()))
+        
+        self.layout.addWidget(self.comboBox)
+
+        self.lineEditsLayout = QVBoxLayout()
+        self.layout.addLayout(self.lineEditsLayout)
+
+        self.lineEdits = []
+        self.updateLineEdits([cell.value for cell in wb[self.comboBox.currentText()][1]])
+
+        self.comboBox.currentIndexChanged.connect(lambda: self.updateLineEdits([cell.value for cell in wb[self.comboBox.currentText()][1]]))
+
+        self.button = QPushButton("Submit", self)
+        self.button.clicked.connect(self.accept)
+        self.layout.addWidget(self.button)
+
+    def updateLineEdits(self, columns):
+        # Remove existing QLineEdit widgets
+        for lineEdit in self.lineEdits:
+            self.lineEditsLayout.removeWidget(lineEdit)
+            lineEdit.deleteLater()
+        self.lineEdits.clear()
+
+        # Add new QLineEdit widgets
+        for column in columns:
+            lineEdit = QLineEdit(self)
+            lineEdit.setPlaceholderText(column)
+            self.lineEditsLayout.addWidget(lineEdit)
+            self.lineEdits.append(lineEdit)
 
 def run():
     app = QApplication(sys.argv)
