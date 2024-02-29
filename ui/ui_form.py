@@ -37,23 +37,23 @@ class Ui_MainWindow(object):
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.button1 = QPushButton(self.centralwidget)
-        self.button1.setObjectName(u"button1")
-        self.button1.setMinimumSize(QSize(100, 40))
+        self.importbutton = QPushButton(self.centralwidget)
+        self.importbutton.setObjectName(u"importbutton")
+        self.importbutton.setMinimumSize(QSize(100, 40))
 
-        self.horizontalLayout.addWidget(self.button1)
+        self.horizontalLayout.addWidget(self.importbutton)
 
-        self.button2 = QPushButton(self.centralwidget)
-        self.button2.setObjectName(u"button2")
-        self.button2.setMinimumSize(QSize(100, 40))
+        self.exportbutton = QPushButton(self.centralwidget)
+        self.exportbutton.setObjectName(u"exportbutton")
+        self.exportbutton.setMinimumSize(QSize(100, 40))
 
-        self.horizontalLayout.addWidget(self.button2)
+        self.horizontalLayout.addWidget(self.exportbutton)
 
-        self.button21 = QPushButton(self.centralwidget)
-        self.button21.setObjectName(u"button21")
-        self.button21.setMinimumSize(QSize(100, 40))
+        self.exitbutton = QPushButton(self.centralwidget)
+        self.exitbutton.setObjectName(u"exitbutton")
+        self.exitbutton.setMinimumSize(QSize(100, 40))
 
-        self.horizontalLayout.addWidget(self.button21)
+        self.horizontalLayout.addWidget(self.exitbutton)
 
 
         self.verticalLayout.addLayout(self.horizontalLayout)
@@ -104,9 +104,9 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
-        self.button1.setText(QCoreApplication.translate("MainWindow", u"Import", None))
-        self.button2.setText(QCoreApplication.translate("MainWindow", u"Export to Word Document", None))
-        self.button21.setText(QCoreApplication.translate("MainWindow", u"Exit", None))
+        self.importbutton.setText(QCoreApplication.translate("MainWindow", u"Import", None))
+        self.exportbutton.setText(QCoreApplication.translate("MainWindow", u"Export to Word Document", None))
+        self.exitbutton.setText(QCoreApplication.translate("MainWindow", u"Exit", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("MainWindow", u"Tab 1", None))
         # self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QCoreApplication.translate("MainWindow", u"Tab 2", None))
     # retranslateUi
