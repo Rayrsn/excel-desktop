@@ -71,7 +71,7 @@ def get_all_people_data(wb, sheet):
     return all people data
     """
     list_of_data = []
-    for row in range(17, last_row(wb, sheet)):
+    for row in range(18, last_row(wb, sheet)):
         data = people_sheet_data(wb, sheet, row)
         list_of_data.append(data)
     return list_of_data
