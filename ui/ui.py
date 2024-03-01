@@ -21,12 +21,13 @@ from PySide6.QtWidgets import (
     QPushButton,
     QLineEdit,
     QDialog,
-    QComboBox
+    QComboBox,
 )
 
 from PySide6.QtGui import QPixmap, QFont
 
 from ui.ui_form import Ui_MainWindow
+from update_doc_file import gen_docs
 
 import openpyxl
 
@@ -41,6 +42,7 @@ class MainWindow(QMainWindow):
         # self.load_excel_data()
         self.ui.exitbutton.clicked.connect(self.closeApplication)
         self.ui.importbutton.clicked.connect(self.openFile)
+        self.ui.exportbutton.clicked.connect(gen_docs)
         self.ui.newentrybutton.clicked.connect(self.ask_for_new_entry)
         # clear existing tabs
         self.ui.tabWidget.clear()
@@ -118,7 +120,9 @@ class MainWindow(QMainWindow):
                     headers = [
                         str(value) for value in row
                     ]  # use this row as the headers
-                    self.tableWidget.setHorizontalHeaderLabels(headers)  # set the headers
+                    self.tableWidget.setHorizontalHeaderLabels(
+                        headers
+                    )  # set the headers
                     continue  # skip the rest of this iteration
                 for j, value in enumerate(row):
                     self.tableWidget.setItem(i, j, QTableWidgetItem(str(value)))
@@ -166,10 +170,9 @@ class MainWindow(QMainWindow):
         )
         self.wb.save(self.excel_file)
 
-    
     def ask_for_new_entry(self):
         # Check if wb has been defined
-        if not hasattr(self, 'wb'):
+        if not hasattr(self, "wb"):
             self.showAlarm("Error", "Please load an Excel file first!")
             return
 
@@ -177,7 +180,13 @@ class MainWindow(QMainWindow):
         dialog = NewEntryDialog(self.wb, self)
         if dialog.exec():
             selected_sheet = dialog.comboBox.currentText()
-            new_entry = {column: lineEdit.text() for column, lineEdit in zip([cell.value for cell in self.wb[selected_sheet][1]], dialog.lineEdits)}
+            new_entry = {
+                column: lineEdit.text()
+                for column, lineEdit in zip(
+                    [cell.value for cell in self.wb[selected_sheet][1]],
+                    dialog.lineEdits,
+                )
+            }
             self.wb[selected_sheet].append(list(new_entry.values()))
             self.wb.save(self.excel_file)
 
@@ -188,10 +197,13 @@ class MainWindow(QMainWindow):
             # update the table without reloading the file
             tableWidget.setRowCount(tableWidget.rowCount() + 1)
             for i, value in enumerate(new_entry.values()):
-                tableWidget.setItem(tableWidget.rowCount() - 1, i, QTableWidgetItem(str(value)))
+                tableWidget.setItem(
+                    tableWidget.rowCount() - 1, i, QTableWidgetItem(str(value))
+                )
 
     def closeApplication(self):
         self.close()
+
 
 class NewEntryDialog(QDialog):
     def __init__(self, wb, parent=None):
@@ -202,17 +214,25 @@ class NewEntryDialog(QDialog):
 
         self.comboBox = QComboBox(self)
         self.comboBox.addItems(wb.sheetnames)
-        self.comboBox.setCurrentText(parent.ui.tabWidget.tabText(parent.ui.tabWidget.currentIndex()))
-        
+        self.comboBox.setCurrentText(
+            parent.ui.tabWidget.tabText(parent.ui.tabWidget.currentIndex())
+        )
+
         self.layout.addWidget(self.comboBox)
 
         self.lineEditsLayout = QVBoxLayout()
         self.layout.addLayout(self.lineEditsLayout)
 
         self.lineEdits = []
-        self.updateLineEdits([cell.value for cell in wb[self.comboBox.currentText()][1]])
+        self.updateLineEdits(
+            [cell.value for cell in wb[self.comboBox.currentText()][1]]
+        )
 
-        self.comboBox.currentIndexChanged.connect(lambda: self.updateLineEdits([cell.value for cell in wb[self.comboBox.currentText()][1]]))
+        self.comboBox.currentIndexChanged.connect(
+            lambda: self.updateLineEdits(
+                [cell.value for cell in wb[self.comboBox.currentText()][1]]
+            )
+        )
 
         self.button = QPushButton("Submit", self)
         self.button.clicked.connect(self.accept)
@@ -231,6 +251,7 @@ class NewEntryDialog(QDialog):
             lineEdit.setPlaceholderText(column)
             self.lineEditsLayout.addWidget(lineEdit)
             self.lineEdits.append(lineEdit)
+
 
 def run():
     app = QApplication(sys.argv)
