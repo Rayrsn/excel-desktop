@@ -1,5 +1,47 @@
 from openpyxl import load_workbook
 from pprint import pprint
+
+headers_list = [
+    "Sr No.",
+    "Office",
+    "Matter Type",
+    "Email",
+    "Previous Number",
+    "CRIME",
+    "File No.",
+    "Date Opened",
+    "Fee Earner",
+    "Client's Surname",
+    "Client's Forename(s)",
+    "Client's Title",
+    "Marital Status",
+    "Letters to Home Address",
+    "Address",
+    "City",
+    "Postcode",
+    "Postal Address (if Different)",
+    "Postal Address Postcode",
+    "Home Telephone",
+    "Work Telephone",
+    "Mobile Number",
+    "Occupation",
+    "Date of Birth",
+    "Ethnicity",
+    "HMP",
+    "Prison Number",
+    "National Insurance Number",
+    "3rd Party",
+    "Initial",
+    "Conflict",
+    "Date",
+    "Costs Information",
+    "Cost Estimate",
+    "Charge Basis",
+    "Court",
+    "Legal Aid",
+]
+
+
 def last_row(wb, sheet):
     """
     check first column if data doesn't exist it return last row number
@@ -15,6 +57,14 @@ def last_row(wb, sheet):
             break
     return last_row_with_data
 
+def people_sheet_data(wb, sheet, row):
+    """
+    just return people data from row
+    """
+    # Read the first row
+    first_row = [cell.value for cell in sheet[row]]
+    people_data = dict(zip(headers_list, first_row))
+    return people_data
 if __name__ == "__main__":
     excel_file = "../../docs/Law Clients Excel Sheet Shared_MainV3.xlsx"
     # Load the workbook and select the first sheet
@@ -23,3 +73,5 @@ if __name__ == "__main__":
     sheet = wb.worksheets[0]
 
     print(f"last row is {last_row(wb, sheet)}\n")
+
+    print(f"header number is {len(headers_list)}\n")
