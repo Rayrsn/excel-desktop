@@ -80,4 +80,4 @@ def gen_docs():
         name = data["Client's Surname"]
         forname = data["Client's Forename(s)"]
         doc_name = f"./{name}_{forname}.docx"
-        create_doc(doc_name, logo_path)
+        create_doc(doc_name, wd_var, logo_path)
