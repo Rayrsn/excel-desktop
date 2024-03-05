@@ -36,6 +36,23 @@ def your_filter_condition(row):
     # Adjust this function based on your actual filtering criteria
     return True  # Placeholder - replace with your actual condition
 
+
+def clear_worksheet(workbook_path, sheet_name):
+    wb = openpyxl.load_workbook(workbook_path)
+    ws = wb[sheet_name]
+
+    # Check if the sheet has any data to clear
+    if ws.max_row > 0:
+        # ws.delete_rows() can be used to delete rows in the given range
+        ws.delete_rows(1, ws.max_row)
+
+    # Save the workbook after clearing the sheet
+    wb.save(workbook_path)
+
+
+# Example usage
+# clear_worksheet("path_to_your_excel_file.xlsx", "SheetNameToClear")
+
 # Replace 'path_to_your_excel_file.xlsx' with the actual path to your workbook
 excel_file = "../../docs/Law Clients Excel Sheet Shared_MainV3.xlsx"
 create_upcoming_month_sheet(excel_file)
