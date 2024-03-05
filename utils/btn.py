@@ -22,10 +22,15 @@ def create_upcoming_month_sheet(workbook_path):
 
     target_row = 1  # Start writing to the second row of the target sheet
     # data of first sheet will start from 17 row
-    for row in ws_source.iter_rows(min_row=17, values_only=True):
+    for index, row in enumerate(ws_source.iter_rows(min_row=17, values_only=True)):
         # Apply filtering condition - for example, checking a date or a specific text
         # This is where you'd customize based on your actual filter condition
-        if your_filter_condition(row):
+        if index == 0:
+            print("yes it is ")
+            for col, value in enumerate(row, start=1):
+                ws_target.cell(row=target_row, column=col).value = value
+            target_row += 1
+        elif your_filter_condition(row) and row:
             for col, value in enumerate(row, start=1):
                 ws_target.cell(row=target_row, column=col).value = value
             target_row += 1
