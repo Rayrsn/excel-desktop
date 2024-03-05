@@ -76,3 +76,4 @@ CMakeLists.txt.user*
 # Virtual Environment
 venv
 .venv
+todo.md
