@@ -41,7 +41,7 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
         # self.load_excel_data()
         self.ui.exitbutton.clicked.connect(self.closeApplication)
-        self.ui.importbutton.clicked.connect(self.openFile)
+        # self.ui.importbutton.clicked.connect(self.openFile)
         self.ui.exportbutton.clicked.connect(gen_docs)
         self.ui.newentrybutton.clicked.connect(self.ask_for_new_entry)
         # clear existing tabs
@@ -142,16 +142,21 @@ class MainWindow(QMainWindow):
     def showAlarm(self, header, mes):
         QMessageBox.warning(self, header, mes)
 
-    def openFile(self):
+    def openFile(self, auto_load_file=False):
         try:
             if self.excel_file:
                 self.tableWidget.cellChanged.disconnect(self.save_excel_data)
         except:
             pass
 
-        filePath, _ = QFileDialog.getOpenFileName(
-            self, "Open File", "", "Excel Files (*.xlsx *.xlsm)"
-        )
+        
+        # auto loadfile for debug
+        if auto_load_file:
+            filePath = "../docs/Law Clients Excel Sheet Shared_MainV3.xlsx"
+        else:
+            filePath, _ = QFileDialog.getOpenFileName(
+                self, "Open File", "", "Excel Files (*.xlsx *.xlsm)"
+            )
 
         if filePath:
             self.excel_file = filePath
@@ -256,6 +261,8 @@ class NewEntryDialog(QDialog):
 def run():
     app = QApplication(sys.argv)
     widget = MainWindow()
+    # NOTE: auto load excel file for debug
+    widget.openFile(auto_load_file=True)
     widget.showMaximized()
     sys.exit(app.exec())
 
