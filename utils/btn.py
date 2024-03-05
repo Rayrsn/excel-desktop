@@ -1,5 +1,5 @@
 import openpyxl
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 def create_upcoming_month_sheet(workbook_path):
@@ -30,7 +30,7 @@ def create_upcoming_month_sheet(workbook_path):
             for col, value in enumerate(row, start=1):
                 ws_target.cell(row=target_row, column=col).value = value
             target_row += 1
-        elif your_filter_condition(row) and row:
+        elif date_open_filter(row) and row:
             for col, value in enumerate(row, start=1):
                 ws_target.cell(row=target_row, column=col).value = value
             target_row += 1
@@ -39,10 +39,23 @@ def create_upcoming_month_sheet(workbook_path):
     wb.save("upcommit_month.xlsx")
 
 
-def your_filter_condition(row):
-    # Example filter condition: True if the row meets the criteria, False otherwise
-    # Adjust this function based on your actual filtering criteria
-    return True  # Placeholder - replace with your actual condition
+def date_open_filter(row):
+    # Assume the "date opened" is in the first column (index 0) of the row
+    date_opened_str = row[7]
+    print(type(date_opened_str))
+    print(date_opened_str)
+
+    # Assuming the date is in 'YYYY-MM-DD' format; adjust the format as necessary
+    # date_opened = datetime.strptime(date_opened_str, "%d.%m.%Y")
+    date_opened = date_opened_str
+
+    # Get the first and last day of the current month
+    today = datetime.today()
+    first_day_of_month = datetime(today.year, today.month, 1)
+    last_day_of_month = datetime(today.year, today.month + 1, 1) - timedelta(days=1)
+
+    # Check if the date_opened falls within the current month
+    return first_day_of_month <= date_opened <= last_day_of_month
 
 
 def clear_worksheet(workbook_path, sheet_name):
@@ -62,5 +75,5 @@ def clear_worksheet(workbook_path, sheet_name):
 # clear_worksheet("path_to_your_excel_file.xlsx", "SheetNameToClear")
 
 # Replace 'path_to_your_excel_file.xlsx' with the actual path to your workbook
-excel_file = "../../docs/Law Clients Excel Sheet Shared_MainV3.xlsm"
+excel_file = "../../docs/Law Clients Excel Sheet Shared_MainV3.xlsx"
 create_upcoming_month_sheet(excel_file)
