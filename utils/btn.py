@@ -39,6 +39,54 @@ def create_upcoming_month_sheet(workbook_path):
     wb.save("upcommit_month.xlsx")
 
 
+def create_upcoming_week_sheet(workbook_path):
+    wb = openpyxl.load_workbook(workbook_path)
+
+    # Access the "Opening File" worksheet
+    ws_source = wb["Opening File"]
+
+    # Check if "Upcoming Cases this Month" sheet exists, if not create it
+    if "Upcoming Cases this Month" not in wb.sheetnames:
+        wb.create_sheet("Upcoming Cases this Month")
+    ws_target = wb["Upcoming Cases this Month"]
+
+    # Assuming the first row is the header and we're filtering based on a condition in column 1
+    # Copy header row to target sheet
+    for col in range(1, ws_source.max_column + 1):
+        ws_target.cell(row=1, column=col).value = ws_source.cell(
+            row=1, column=col
+        ).value
+
+    target_row = 1  # Start writing to the second row of the target sheet
+    # data of first sheet will start from 17 row
+    for index, row in enumerate(ws_source.iter_rows(min_row=17, values_only=True)):
+        # Apply filtering condition - for example, checking a date or a specific text
+        # This is where you'd customize based on your actual filter condition
+        if index == 0:
+            print("yes it is ")
+            for col, value in enumerate(row, start=1):
+                ws_target.cell(row=target_row, column=col).value = value
+            target_row += 1
+        elif date_open_filter(row) and row:
+            for col, value in enumerate(row, start=1):
+                ws_target.cell(row=target_row, column=col).value = value
+            target_row += 1
+
+    # Save the workbook with the new data
+    wb.save("upcommit_month.xlsx")
+
+
+def is_current_week(date_str):
+    # Assuming the date is in 'YYYY-MM-DD' format; adjust the format as necessary
+    date_opened = datetime.strptime(date_str, "%Y-%m-%d")
+
+    today = datetime.today()
+    start_week = today - timedelta(days=today.isoweekday() - 1)  # Monday
+    end_week = start_week + timedelta(days=6)  # Sunday
+
+    return start_week <= date_opened <= end_week
+
+
 def date_open_filter(row):
     # Assume the "date opened" is in the first column (index 0) of the row
     date_opened_str = row[7]
