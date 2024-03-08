@@ -213,9 +213,10 @@ class MainWindow(QMainWindow):
             self.wb[selected_sheet].append(list(new_entry.values()))
             self.wb.save(self.excel_file)
 
-            # Get the tableWidget of the currently selected tab
-            current_tab = self.ui.tabWidget.currentWidget()
-            tableWidget = current_tab.findChild(QTableWidget)
+            # Get the tableWidget of the tab that corresponds to the selected sheet
+            selected_tab_index = self.wb.sheetnames.index(selected_sheet)
+            selected_tab = self.ui.tabWidget.widget(selected_tab_index)
+            tableWidget = selected_tab.findChild(QTableWidget)
 
             # update the table without reloading the file
             tableWidget.setRowCount(tableWidget.rowCount() + 1)
