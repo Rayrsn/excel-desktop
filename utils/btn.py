@@ -1,7 +1,95 @@
 import openpyxl
 from datetime import datetime, timedelta
+from pprint import pprint
 
 
+def generate_bail_refused_report(workbook_path):
+    workbook = openpyxl.load_workbook(workbook_path)
+
+    magistrates_sheet = workbook["Magistrates_Merge"]
+    crown_court_sheet = workbook["Crown Court Merge"]
+    # report_sheet = workbook.get_sheet_by_name(
+    #     "Clients in Prison Report"
+    # )  # Get existing or create new
+
+    # if not report_sheet:
+    report_sheet = workbook.create_sheet("Clients in Prison Report")
+
+    bail_col = get_column_index(magistrates_sheet, "Bail")
+    prison_number_col = get_column_index(magistrates_sheet, "Prison Number")
+    file_no_col = get_column_index(magistrates_sheet, "File No.")
+
+    copy_headers(magistrates_sheet, report_sheet)
+
+    report_row = 2  # Start from row 2 to leave space for headers
+    unique_file_numbers = set()
+
+    extract_data_for_bail_refused(
+        magistrates_sheet,
+        report_sheet,
+        report_row,
+        bail_col,
+        prison_number_col,
+        file_no_col,
+        unique_file_numbers,
+    )
+    extract_data_for_bail_refused(
+        crown_court_sheet,
+        report_sheet,
+        report_row,
+        bail_col,
+        prison_number_col,
+        file_no_col,
+        unique_file_numbers,
+    )
+
+    workbook.save(workbook_path)
+    print("Bail refused report generated successfully!")
+
+
+def extract_data_for_bail_refused(
+    data_sheet,
+    report_sheet,
+    report_row,
+    bail_col,
+    prison_number_col,
+    file_no_col,
+    unique_file_numbers,
+):
+    criteria = ["Bail Refused", "JC Bail Refused"]
+
+    for row in data_sheet.iter_rows(min_row=2):  # Skip header row
+        bail_value = row[bail_col - 1].value
+        prison_number = row[prison_number_col - 1].value
+        file_no = row[file_no_col - 1].value
+
+        if (
+            bail_value in criteria
+            and prison_number is not None
+            and file_no not in unique_file_numbers
+        ):
+            unique_file_numbers.add(file_no)
+            for i in range(1, 18):  # Copy 17 columns
+                report_sheet.cell(row=report_row, column=i).value = row[i - 1].value
+            report_row += 1
+
+
+def get_column_index(sheet, header):
+    header_row = next(sheet.iter_rows(min_row=1, max_row=1))  # Get first row
+    for cell in header_row:
+        if cell.value == header:
+            return cell.column
+    return 0
+
+
+def copy_headers(source_sheet, target_sheet):
+    for i in range(1, 18):  # Copy 17 headers
+        target_sheet.cell(row=1, column=i).value = source_sheet.cell(
+            row=1, column=i
+        ).value
+
+
+####################
 def create_upcoming_month_sheet(workbook_path):
     wb = openpyxl.load_workbook(workbook_path)
 
@@ -153,10 +241,19 @@ def clear_worksheet(workbook_path, sheet_name):
     wb.save(workbook_path)
 
 
-# Example usage
-# clear_worksheet("path_to_your_excel_file.xlsx", "SheetNameToClear")
+def get_sheet_names(workbook):
+    """
+    Returns a list of sheet names from the provided openpyxl workbook object.
 
-# Replace 'path_to_your_excel_file.xlsx' with the actual path to your workbook
+    Args:
+        workbook (openpyxl.Workbook): The openpyxl workbook object.
+
+    Returns:
+        list: A list containing the names of all sheets in the workbook.
+    """
+    return workbook.sheetnames
+
+
 excel_file = "../Law Clients Excel Sheet Shared_MainV3.xlsx"
-# create_upcoming_month_sheet(excel_file)
-create_legal_aid_report_sheet(excel_file)
+
+generate_bail_refused_report(excel_file)
