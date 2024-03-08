@@ -76,6 +76,40 @@ def create_upcoming_week_sheet(workbook_path):
     wb.save("upcommit_month.xlsx")
 
 
+def create_legal_aid_report_sheet(workbook_path):
+    def calc_report_vars(last_column_values):
+        vals = {
+            "Submitted": 0,
+            "Refused": 0,
+            "Date Stamped": 0,
+            "Approved": 0,
+            "Appealed": 0,
+        }
+        for i in last_column_values:
+            if i and i in vals:
+                vals[i] += 1
+        return vals
+
+    # Load the Excel file
+    wb = openpyxl.load_workbook(workbook_path)
+
+    # Select the specific sheet
+    sheet = wb["Opening File"]  # Replace 'Sheet1' with the name of your sheet
+
+    # Find the last column with data
+    last_column = sheet.max_column
+
+    # Create an empty list to store values from the last column
+    last_column_values = [
+        sheet.cell(row=row, column=last_column).value
+        for row in range(18, sheet.max_row + 1)
+    ]
+    print(calc_report_vars(last_column_values))
+
+    # Close the Excel file
+    wb.close()
+
+
 def is_current_week(date_str):
     # Assuming the date is in 'YYYY-MM-DD' format; adjust the format as necessary
     date_opened = datetime.strptime(date_str, "%Y-%m-%d")
@@ -124,4 +158,5 @@ def clear_worksheet(workbook_path, sheet_name):
 
 # Replace 'path_to_your_excel_file.xlsx' with the actual path to your workbook
 excel_file = "../../docs/Law Clients Excel Sheet Shared_MainV3.xlsx"
-create_upcoming_month_sheet(excel_file)
+# create_upcoming_month_sheet(excel_file)
+create_legal_aid_report_sheet(excel_file)
