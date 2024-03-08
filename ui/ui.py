@@ -23,6 +23,7 @@ from PySide6.QtWidgets import (
     QDialog,
     QComboBox,
     QGridLayout,
+    QSpacerItem,
 )
 
 from PySide6.QtGui import QPixmap, QFont
@@ -42,9 +43,10 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
         # self.load_excel_data()
         self.ui.exitbutton.clicked.connect(self.closeApplication)
-        # self.ui.importbutton.clicked.connect(self.openFile)
+        self.ui.importbutton.clicked.connect(self.openFile)
         self.ui.exportbutton.clicked.connect(gen_docs)
         self.ui.newentrybutton.clicked.connect(self.ask_for_new_entry)
+        self.ui.operationsbutton.clicked.connect(self.show_operations_dialog)
         # clear existing tabs
         self.ui.tabWidget.clear()
 
@@ -225,6 +227,10 @@ class MainWindow(QMainWindow):
                     tableWidget.rowCount() - 1, i, QTableWidgetItem(str(value))
                 )
 
+    def show_operations_dialog(self):
+        dialog = OperationsDialog(self)
+        dialog.exec()
+
     def closeApplication(self):
         self.close()
 
@@ -289,6 +295,22 @@ class NewEntryDialog(QDialog):
             self.lineEditsLayout.addWidget(lineEdit, i // 3, i % 3)
             self.lineEdits.append(lineEdit)
 
+class OperationsDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Operations")
+
+        self.layout = QGridLayout(self)
+
+        # Create 7 buttons and add them to the layout
+        for i in range(7):
+            button = QPushButton(f"Button {i+1}", self)
+            button.setMinimumSize(100, 40)  # Make the buttons big
+            self.layout.addWidget(button, i // 2, i % 2)
+
+        # Add stretchable spaces to fill the remaining rows
+        for i in range(7, 8*2):
+            self.layout.addItem(QSpacerItem(20, 40), i // 2, i % 2)
 
 def run():
     app = QApplication(sys.argv)

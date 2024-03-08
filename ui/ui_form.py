@@ -54,6 +54,12 @@ class Ui_MainWindow(object):
         self.exportbutton.setMinimumSize(QSize(100, 40))
 
         self.horizontalLayout.addWidget(self.exportbutton)
+        
+        self.operationsbutton = QPushButton(self.centralwidget)
+        self.operationsbutton.setObjectName(u"operationsbutton")
+        self.operationsbutton.setMinimumSize(QSize(100, 40))
+
+        self.horizontalLayout.addWidget(self.operationsbutton)
 
         self.exitbutton = QPushButton(self.centralwidget)
         self.exitbutton.setObjectName(u"exitbutton")
@@ -113,6 +119,7 @@ class Ui_MainWindow(object):
         self.importbutton.setText(QCoreApplication.translate("MainWindow", u"Import", None))
         self.newentrybutton.setText(QCoreApplication.translate("MainWindow", u"New Entry", None))
         self.exportbutton.setText(QCoreApplication.translate("MainWindow", u"Export to Word Document", None))
+        self.operationsbutton.setText(QCoreApplication.translate("MainWindow", u"Operations", None))
         self.exitbutton.setText(QCoreApplication.translate("MainWindow", u"Exit", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("MainWindow", u"Tab 1", None))
         # self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QCoreApplication.translate("MainWindow", u"Tab 2", None))
