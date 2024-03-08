@@ -257,6 +257,9 @@ class NewEntryDialog(QDialog):
             lambda: self.updateLineEdits(wb[self.comboBox.currentText()])
         )
 
+        # Add a stretchable space
+        self.layout.addStretch(1)
+
         self.button = QPushButton("Submit", self)
         self.button.clicked.connect(self.accept)
         self.layout.addWidget(self.button)
@@ -270,7 +273,6 @@ class NewEntryDialog(QDialog):
 
         # Find the first non-empty row
         for row in sheet.iter_rows(values_only=True):
-            print(f"row {row} of sheet {sheet}")
             if all(cell is not None and str(cell).strip() != "" for cell in row):
                 columns = row
                 break
