@@ -22,6 +22,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QDialog,
     QComboBox,
+    QGridLayout,
 )
 
 from PySide6.QtGui import QPixmap, QFont
@@ -75,6 +76,10 @@ class MainWindow(QMainWindow):
 
         self.sheet_number = len(self.wb.sheetnames)
 
+        # Remove empty columns from all sheets
+        for sheet in self.wb:
+            self.remove_empty_columns(sheet)
+
         # clear existing tabs
         self.ui.tabWidget.clear()
 
@@ -104,7 +109,7 @@ class MainWindow(QMainWindow):
 
             # Change tabs name
             self.ui.tabWidget.setTabText(sh_num, self.wb.sheetnames[sh_num])
-
+            
             # set value of table from excel file
             headers = None
             for i, row in enumerate(self.wb[sheet_name].iter_rows(values_only=True)):
@@ -138,6 +143,10 @@ class MainWindow(QMainWindow):
                     rows_to_remove.append(i)
             for i in reversed(rows_to_remove):
                 self.tableWidget.removeRow(i)
+                
+            # resize columns to fit the contents
+            self.tableWidget.resizeColumnsToContents()
+
 
     def showAlarm(self, header, mes):
         QMessageBox.warning(self, header, mes)
@@ -162,6 +171,15 @@ class MainWindow(QMainWindow):
             self.excel_file = filePath
             self.load_excel_data(self.excel_file)
             self.tableWidget.cellChanged.connect(self.save_excel_data)
+
+    def remove_empty_columns(self, sheet):
+        columns_to_remove = []
+        for i, column in enumerate(sheet.iter_cols(values_only=True), start=1):
+            if all(cell is None for cell in column):
+                columns_to_remove.append(i)
+
+        for i in reversed(columns_to_remove):
+            sheet.delete_cols(i)
 
     def save_excel_data(self, row, column):
         if not self.excel_file:
@@ -215,6 +233,10 @@ class NewEntryDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("New Entry")
 
+        # Set the size of the dialog to be 3/4 of the size of the parent
+        if parent is not None:
+            self.resize(parent.size() * 0.5)
+
         self.layout = QVBoxLayout(self)
 
         self.comboBox = QComboBox(self)
@@ -225,36 +247,41 @@ class NewEntryDialog(QDialog):
 
         self.layout.addWidget(self.comboBox)
 
-        self.lineEditsLayout = QVBoxLayout()
+        self.lineEditsLayout = QGridLayout()
         self.layout.addLayout(self.lineEditsLayout)
 
         self.lineEdits = []
-        self.updateLineEdits(
-            [cell.value for cell in wb[self.comboBox.currentText()][1]]
-        )
+        self.updateLineEdits(wb[self.comboBox.currentText()])
 
         self.comboBox.currentIndexChanged.connect(
-            lambda: self.updateLineEdits(
-                [cell.value for cell in wb[self.comboBox.currentText()][1]]
-            )
+            lambda: self.updateLineEdits(wb[self.comboBox.currentText()])
         )
 
         self.button = QPushButton("Submit", self)
         self.button.clicked.connect(self.accept)
         self.layout.addWidget(self.button)
 
-    def updateLineEdits(self, columns):
+    def updateLineEdits(self, sheet):
         # Remove existing QLineEdit widgets
         for lineEdit in self.lineEdits:
             self.lineEditsLayout.removeWidget(lineEdit)
             lineEdit.deleteLater()
         self.lineEdits.clear()
 
+        # Find the first non-empty row
+        for row in sheet.iter_rows(values_only=True):
+            print(f"row {row} of sheet {sheet}")
+            if all(cell is not None and str(cell).strip() != "" for cell in row):
+                columns = row
+                break
+        else:
+            columns = []
+
         # Add new QLineEdit widgets
-        for column in columns:
+        for i, column in enumerate(columns):
             lineEdit = QLineEdit(self)
             lineEdit.setPlaceholderText(column)
-            self.lineEditsLayout.addWidget(lineEdit)
+            self.lineEditsLayout.addWidget(lineEdit, i // 3, i % 3)
             self.lineEdits.append(lineEdit)
 
 
