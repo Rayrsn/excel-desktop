@@ -44,7 +44,7 @@ def create_doc(doc_name, wd_var, logo_path):
 def gen_docs():
     logo_path = "./bkp_logo.jpg"
 
-    excel_file = "../docs/Law Clients Excel Sheet Shared_MainV3.xlsx"
+    excel_file = "Law Clients.xlsm"
     # Load the workbook and select the first sheet
     wb = load_workbook(excel_file)
     # This selects the first sheet

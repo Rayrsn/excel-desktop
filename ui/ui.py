@@ -152,7 +152,7 @@ class MainWindow(QMainWindow):
         
         # auto loadfile for debug
         if auto_load_file:
-            filePath = "Law Clients Excel Sheet Shared_MainV3.xlsx"
+            filePath = "Law Clients.xlsm"
         else:
             filePath, _ = QFileDialog.getOpenFileName(
                 self, "Open File", "", "Excel Files (*.xlsx *.xlsm)"

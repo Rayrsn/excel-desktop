@@ -124,7 +124,7 @@ def create_upcoming_month_sheet(workbook_path):
             target_row += 1
 
     # Save the workbook with the new data
-    wb.save("upcommit_month.xlsx")
+    wb.save("upcommit_month.xlsm")
 
 
 def create_upcoming_week_sheet(workbook_path):
@@ -161,7 +161,7 @@ def create_upcoming_week_sheet(workbook_path):
             target_row += 1
 
     # Save the workbook with the new data
-    wb.save("upcommit_month.xlsx")
+    wb.save("upcommit_month.xlsm")
 
 
 def create_legal_aid_report_sheet(workbook_path):
@@ -254,6 +254,6 @@ def get_sheet_names(workbook):
     return workbook.sheetnames
 
 
-excel_file = "../Law Clients Excel Sheet Shared_MainV3.xlsx"
+excel_file = "Law Clients.xlsm"
 
 generate_bail_refused_report(excel_file)
