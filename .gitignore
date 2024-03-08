@@ -78,3 +78,4 @@ venv
 .venv
 todo.md
 README.md
+**/**.xlsx

@@ -157,6 +157,6 @@ def clear_worksheet(workbook_path, sheet_name):
 # clear_worksheet("path_to_your_excel_file.xlsx", "SheetNameToClear")
 
 # Replace 'path_to_your_excel_file.xlsx' with the actual path to your workbook
-excel_file = "../../docs/Law Clients Excel Sheet Shared_MainV3.xlsx"
+excel_file = "../Law Clients Excel Sheet Shared_MainV3.xlsx"
 # create_upcoming_month_sheet(excel_file)
 create_legal_aid_report_sheet(excel_file)
