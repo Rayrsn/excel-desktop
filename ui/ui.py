@@ -261,6 +261,8 @@ class NewEntryDialog(QDialog):
         self.layout.addStretch(1)
 
         self.button = QPushButton("Submit", self)
+        # change size of button
+        self.button.setMinimumSize(100, 40)
         self.button.clicked.connect(self.accept)
         self.layout.addWidget(self.button)
 
