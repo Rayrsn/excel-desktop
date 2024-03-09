@@ -111,7 +111,7 @@ class MainWindow(QMainWindow):
 
             # Change tabs name
             self.ui.tabWidget.setTabText(sh_num, self.wb.sheetnames[sh_num])
-            
+
             # set value of table from excel file
             headers = None
             for i, row in enumerate(self.wb[sheet_name].iter_rows(values_only=True)):
@@ -145,10 +145,9 @@ class MainWindow(QMainWindow):
                     rows_to_remove.append(i)
             for i in reversed(rows_to_remove):
                 self.tableWidget.removeRow(i)
-                
+
             # resize columns to fit the contents
             self.tableWidget.resizeColumnsToContents()
-
 
     def showAlarm(self, header, mes):
         QMessageBox.warning(self, header, mes)
@@ -160,7 +159,6 @@ class MainWindow(QMainWindow):
         except:
             pass
 
-        
         # auto loadfile for debug
         if auto_load_file:
             filePath = "Law Clients.xlsm"
@@ -295,6 +293,7 @@ class NewEntryDialog(QDialog):
             self.lineEditsLayout.addWidget(lineEdit, i // 3, i % 3)
             self.lineEdits.append(lineEdit)
 
+
 class OperationsDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -302,15 +301,25 @@ class OperationsDialog(QDialog):
 
         self.layout = QGridLayout(self)
 
+        buttons_name = [
+            "Casess this Month",
+            "Generate Legal Aid Report",
+            "Crown Court Cases without Counsel",
+            "Report of upcoming Crown Court Dates",
+            "Cases this Week",
+            "Clients in Prison",
+            "Outstanding Blance for Road Traffic",
+        ]
         # Create 7 buttons and add them to the layout
-        for i in range(7):
-            button = QPushButton(f"Button {i+1}", self)
+        for i, btn in enumerate(buttons_name):
+            button = QPushButton(f"{btn}", self)
             button.setMinimumSize(100, 40)  # Make the buttons big
             self.layout.addWidget(button, i // 2, i % 2)
 
         # Add stretchable spaces to fill the remaining rows
-        for i in range(7, 8*2):
+        for i in range(7, 8 * 2):
             self.layout.addItem(QSpacerItem(20, 40), i // 2, i % 2)
+
 
 def run():
     app = QApplication(sys.argv)
