@@ -1,50 +1,107 @@
 import openpyxl
 from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
+
+# from pprint import pprint
+
+
+def get_column_val(data_worksheet, start_row, column_num):
+    """
+    get value of column that are not None and save them in array
+    output:
+        (
+            header,
+            [(index, value), ...]
+        )
+
+    """
+
+    values = []
+    for index, row in enumerate(
+        data_worksheet.iter_rows(min_row=start_row, values_only=True)
+    ):
+        if index == 0:
+            header = row[column_num]
+            continue
+        if row[column_num] is None:
+            continue
+        values.append((index, row[column_num]))
+    return (header, values)
 
 
 def generate_monthly_cases_report(filepath):
     """Generates a monthly cases report from an Excel workbook."""
+
+    # BUG: it create one more sheet with "sheet_name + 1" it must check if sheet name is exist clear it then start function
+    # BUG: it just show one row in create sheet
+    # BUG: it dont clean sheet for enter new data and it make create another sheet for excel
 
     workbook = openpyxl.load_workbook(filepath)
 
     # Get references to worksheets
     data_worksheet = workbook["Opening File"]
     report_worksheet_name = "Upcoming Cases this Month"
-    workbook.create_sheet("Upcoming Cases this Month")
+    workbook.create_sheet(report_worksheet_name)
     report_worksheet = workbook[report_worksheet_name]
     # report_worksheet = workbook.get_sheet_by_name(report_worksheet_name)
     # if not report_worksheet:
     #     report_worksheet = workbook.create_sheet(report_worksheet_name)
     # else:
+
+    # clear sheet
     for row in report_worksheet.iter_rows():
         for cell in row:
-            cell.value = None  # Clear existing data
-
-    # Get references to tables
-    master_data_table = data_worksheet["MasterData"]
+            cell.value = None
 
     # Filter data for the current month
-    header_row = master_data_table.min_row
+    header_row = data_worksheet[17]
     current_month_start = datetime.now().replace(day=1)
     current_month_end = (current_month_start + relativedelta(months=+1)) - timedelta(
         days=1
     )
+    _, date_opened_vals = get_column_val(data_worksheet, 17, 7)
     filtered_data = [
-        row
-        for row in master_data_table.iter_rows(min_row=header_row + 1)
-        if current_month_start <= row[0].value <= current_month_end
+        cell
+        for index, cell in date_opened_vals
+        if current_month_start <= cell <= current_month_end
     ]
 
     # Copy filtered data to report worksheet
-    report_worksheet.append(master_data_table[header_row])  # Paste headers
-    for row in filtered_data:
-        report_worksheet.append([cell.value for cell in row])
+    # report_worksheet.append(header_row)  # Paste headers
 
-    # Convert pasted data to Excel table
-    report_table = openpyxl.worksheet.table.Table(
-        displayName="Upcoming_Cases_Table", ref=report_worksheet.tables.tables[0].ref
-    )
-    report_worksheet.add_table(report_table)
+    ##########################
+    # copy header into report worksheet
+    for index, header in enumerate(header_row):
+        report_worksheet.cell(
+            row=0 + 1, column=index + 1, value=header_row[index].value
+        )
+
+    ##########################
+    # +--------------------------------------------+
+    # |    copy filtered_data into report sheet    |
+    # +--------------------------------------------+
+
+    # # copy filted data into sheet
+    # for index, header in enumerate(header_row):
+    #     report_worksheet.cell(
+    #         row=0 + 1, column=index + 1, value=header_row[index].value
+    #     )
+
+    # filtered_data.append(["test"])
+    # filtered_data.append("test")
+    # print(filtered_data)
+    for row in filtered_data:
+        report_worksheet.append([cell for cell in row])
+        # print([cell[0].value for cell in report_worksheet.iter_rows()])
+
+    # print([row[1].value for row in report_worksheet.iter_rows()])
+    ##########################
+
+    # # Convert pasted data to Excel table
+    # report_table = openpyxl.worksheet.table.Table(
+    #     displayName="Upcoming_Cases_Table", ref=report_worksheet.tables.tables[0].ref
+    # )
+    # report_worksheet.add_table(report_table)
 
     # Save the workbook
     workbook.save(filepath)
@@ -112,13 +169,14 @@ def generate_legal_aid_report(filepath):
     # Get references to worksheets
     data_worksheet = workbook["Opening File"]
     report_worksheet_name = "Legal Aid Report"
-    report_worksheet = workbook.get_sheet_by_name(report_worksheet_name)
-    if not report_worksheet:
-        report_worksheet = workbook.create_sheet(report_worksheet_name)
-    else:
-        for row in report_worksheet.iter_rows():
-            for cell in row:
-                cell.value = None  # Clear existing data
+    report_worksheet = workbook.create_sheet(report_worksheet_name)
+    # report_worksheet = workbook.get_sheet_by_name(report_worksheet_name)
+    # if not report_worksheet:
+    #     report_worksheet = workbook.create_sheet(report_worksheet_name)
+    # else:
+    for row in report_worksheet.iter_rows():
+        for cell in row:
+            cell.value = None  # Clear existing data
 
     # Get references to tables
     master_data_table = data_worksheet["MasterData"]
@@ -206,13 +264,14 @@ def generate_bail_refused_report(filepath):
     magistrates_sheet = workbook["Magistrates Merge"]
     crown_court_sheet = workbook["Crown Court Merge"]
     report_sheet_name = "Clients in Prison Report"
-    report_sheet = workbook.get_sheet_by_name(report_sheet_name)
-    if not report_sheet:
-        report_sheet = workbook.create_sheet(report_sheet_name)
-    else:
-        for row in report_sheet.iter_rows():
-            for cell in row:
-                cell.value = None  # Clear existing data
+    report_sheet = workbook.create_sheet(report_sheet_name)
+    # report_sheet = workbook.get_sheet_by_name(report_sheet_name)
+    # if not report_sheet:
+    # report_sheet = workbook.create_sheet(report_sheet_name)
+    # else:
+    for row in report_sheet.iter_rows():
+        for cell in row:
+            cell.value = None  # Clear existing data
 
     # Define column indices (assuming headers are in the first row)
     bail_col = get_column_index(magistrates_sheet, 1, "Bail")
@@ -318,13 +377,14 @@ def generate_empty_counsel_report(filepath):
     # Get references to worksheets
     crown_court_sheet = workbook["Crown Court Merge"]
     report_sheet_name = "Empty Counsel Report"
-    report_sheet = workbook.get_sheet_by_name(report_sheet_name)
-    if not report_sheet:
-        report_sheet = workbook.create_sheet(report_sheet_name)
-    else:
-        for row in report_sheet.iter_rows():
-            for cell in row:
-                cell.value = None  # Clear existing data
+    report_sheet = workbook.create_sheet(report_sheet_name)
+    # report_sheet = workbook.get_sheet_by_name(report_sheet_name)
+    # if not report_sheet:
+    #     report_sheet = workbook.create_sheet(report_sheet_name)
+    # else:
+    for row in report_sheet.iter_rows():
+        for cell in row:
+            cell.value = None  # Clear existing data
 
     # Define counsel column index (assuming headers are in the first row)
     counsel_col = get_column_index(crown_court_sheet, 1, "Name of Counsel")
@@ -376,13 +436,14 @@ def generate_non_zero_balance_report(filepath):
     # Get references to worksheets
     road_traffic_sheet = workbook["Road Traffic"]
     report_sheet_name = "Non-Zero Balance Report"
-    report_sheet = workbook.get_sheet_by_name(report_sheet_name)
-    if not report_sheet:
-        report_sheet = workbook.create_sheet(report_sheet_name)
-    else:
-        for row in report_sheet.iter_rows():
-            for cell in row:
-                cell.value = None  # Clear existing data
+    report_sheet = workbook.create_sheet(report_sheet_name)
+    # report_sheet = workbook.get_sheet_by_name(report_sheet_name)
+    # if not report_sheet:
+    #     report_sheet = workbook.create_sheet(report_sheet_name)
+    # else:
+    for row in report_sheet.iter_rows():
+        for cell in row:
+            cell.value = None  # Clear existing data
 
     # Define balance column index (assuming headers are in the first row)
     balance_col = get_column_index(road_traffic_sheet, 1, "Balance")
@@ -497,7 +558,6 @@ def extract_data_for_stage_report(row_num, ws, report_sheet, report_row):
 
 if __name__ == "__main__":
     filepath = "../Law Clients.xlsm"
-    # generate_stage_reports(filepath)
 
     # generate_non_zero_balance_report(filepath)
     # generate_empty_counsel_report(filepath)
@@ -505,3 +565,4 @@ if __name__ == "__main__":
     # generate_legal_aid_report(filepath)
     # generate_weekly_cases_report(filepath)
     generate_monthly_cases_report(filepath)
+    # generate_stage_reports(filepath)
