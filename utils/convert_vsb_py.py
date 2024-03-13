@@ -1,6 +1,7 @@
 import openpyxl
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
+from pprint import pprint
 
 # from pprint import pprint
 
@@ -29,12 +30,32 @@ def get_column_val(data_worksheet, start_row, column_num):
     return (header, values)
 
 
+def read_rows_with_numbers(filepath):
+    """Reads rows from the first sheet and saves them in a list with row numbers."""
+
+    workbook = openpyxl.load_workbook(filepath)
+    sheet = workbook["Opening File"]
+
+    data_with_row_numbers = []
+    # 17 row is header
+    for row_num, row in enumerate(
+        sheet.iter_rows(min_row=17),
+        start=17 + 1,  # add 1 because of row in excel file start with 1
+    ):
+        # filter empty row with first column
+        if row[0].value == None:
+            continue
+        # Skip the header row (row 1)
+        data_list = [cell.value for cell in row]
+        data_with_row_numbers.append((row_num, data_list))
+
+    return data_with_row_numbers
+
+
 def generate_monthly_cases_report(filepath):
     """Generates a monthly cases report from an Excel workbook."""
 
     # BUG: it create one more sheet with "sheet_name + 1" it must check if sheet name is exist clear it then start function
-    # BUG: it just show one row in create sheet
-    # BUG: it dont clean sheet for enter new data and it make create another sheet for excel
 
     workbook = openpyxl.load_workbook(filepath)
 
@@ -61,49 +82,34 @@ def generate_monthly_cases_report(filepath):
     )
     _, date_opened_vals = get_column_val(data_worksheet, 17, 7)
     filtered_data = [
-        cell
+        (index + 18, cell)  # add 17 for 17 row was skip
         for index, cell in date_opened_vals
         if current_month_start <= cell <= current_month_end
     ]
 
-    # Copy filtered data to report worksheet
-    # report_worksheet.append(header_row)  # Paste headers
+    # +-------------------------------------+
+    # |  copy header into report worksheet  |
+    # +-------------------------------------+
 
-    ##########################
-    # copy header into report worksheet
     for index, header in enumerate(header_row):
         report_worksheet.cell(
             row=0 + 1, column=index + 1, value=header_row[index].value
         )
 
-    ##########################
     # +--------------------------------------------+
     # |    copy filtered_data into report sheet    |
     # +--------------------------------------------+
 
-    # # copy filted data into sheet
-    # for index, header in enumerate(header_row):
-    #     report_worksheet.cell(
-    #         row=0 + 1, column=index + 1, value=header_row[index].value
-    #     )
+    # pprint(filtered_data)
+    x = read_rows_with_numbers(filepath)
+    target_row = 2
+    for row_num, row in filtered_data:
+        for f_sh_row_num, row in x:
+            if f_sh_row_num == row_num:
+                for col, cell in enumerate(row):
+                    report_worksheet.cell(row=target_row, column=col + 1, value=cell)
+                target_row += 1
 
-    # filtered_data.append(["test"])
-    # filtered_data.append("test")
-    # print(filtered_data)
-    for row in filtered_data:
-        report_worksheet.append([cell for cell in row])
-        # print([cell[0].value for cell in report_worksheet.iter_rows()])
-
-    # print([row[1].value for row in report_worksheet.iter_rows()])
-    ##########################
-
-    # # Convert pasted data to Excel table
-    # report_table = openpyxl.worksheet.table.Table(
-    #     displayName="Upcoming_Cases_Table", ref=report_worksheet.tables.tables[0].ref
-    # )
-    # report_worksheet.add_table(report_table)
-
-    # Save the workbook
     workbook.save(filepath)
 
     print("Monthly cases report generated successfully!")
@@ -563,6 +569,8 @@ if __name__ == "__main__":
     # generate_empty_counsel_report(filepath)
     # generate_bail_refused_report(filepath)
     # generate_legal_aid_report(filepath)
+
     # generate_weekly_cases_report(filepath)
     generate_monthly_cases_report(filepath)
     # generate_stage_reports(filepath)
+    # x = read_rows_with_numbers(filepath)
