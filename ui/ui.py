@@ -237,6 +237,7 @@ class MainWindow(QMainWindow):
     def show_operations_dialog(self):
         dialog = OperationsDialog(self.excel_file)
         dialog.exec()
+        self.load_excel_data(self.excel_file)
 
     def closeApplication(self):
         self.close()
@@ -304,9 +305,7 @@ class NewEntryDialog(QDialog):
 
 
 class OperationsDialog(QDialog):
-    # def __init__(self, filepath, parent=None):
     def __init__(self, filepath):
-        # super().__init__(parent)
         super().__init__()
 
         self.excel_file = filepath
@@ -316,90 +315,53 @@ class OperationsDialog(QDialog):
         self.layout = QGridLayout(self)
 
         self.monthly_cases_report_button = QPushButton("Cases this Month")
-        self.monthly_cases_report_button.setMinimumSize(
-            100, 40
-        )  # change size of button
-        self.layout.addWidget(
-            self.monthly_cases_report_button, 0, 0
-        )  # add button to layout
+        self.monthly_cases_report_button.setMinimumSize(100, 40)
+        self.layout.addWidget(self.monthly_cases_report_button, 0, 0)
         self.monthly_cases_report_button.clicked.connect(
-            lambda: self.run_reload_bnt(
-                self.excel_file,
-                generate_monthly_cases_report,
-                MainWindow().load_excel_data,
-            )
+            lambda: (generate_monthly_cases_report(self.excel_file), self.accept())
         )
 
         self.weekly_cases_report_button = QPushButton("Cases this Week")
         self.weekly_cases_report_button.setMinimumSize(100, 40)
         self.layout.addWidget(self.weekly_cases_report_button, 0, 1)
         self.weekly_cases_report_button.clicked.connect(
-            lambda: self.run_reload_bnt(
-                self.excel_file,
-                generate_weekly_cases_report,
-                MainWindow().load_excel_data,
-            )
+            lambda: (generate_weekly_cases_report(self.excel_file), self.accept())
         )
 
         self.legal_aid_report_button = QPushButton("Legal Aid")
         self.legal_aid_report_button.setMinimumSize(100, 40)
         self.layout.addWidget(self.legal_aid_report_button, 1, 0)
         self.legal_aid_report_button.clicked.connect(
-            lambda: self.run_reload_bnt(
-                self.excel_file,
-                generate_legal_aid_report,
-                MainWindow().load_excel_data,
-            )
+            lambda: (generate_legal_aid_report(self.excel_file), self.accept())
         )
 
         self.bail_refused_report_button = QPushButton("Bail Refused")
         self.bail_refused_report_button.setMinimumSize(100, 40)
         self.layout.addWidget(self.bail_refused_report_button, 1, 1)
         self.bail_refused_report_button.clicked.connect(
-            lambda: self.run_reload_bnt(
-                self.excel_file,
-                generate_bail_refused_report,
-                MainWindow().load_excel_data,
-            )
+            lambda: (generate_bail_refused_report(self.excel_file), self.accept())
         )
 
         self.empty_counsel_report_button = QPushButton("Empty Counsel")
         self.empty_counsel_report_button.setMinimumSize(100, 40)
         self.layout.addWidget(self.empty_counsel_report_button, 2, 0)
         self.empty_counsel_report_button.clicked.connect(
-            lambda: self.run_reload_bnt(
-                self.excel_file,
-                generate_empty_counsel_report,
-                MainWindow().load_excel_data,
-            )
+            lambda: (generate_empty_counsel_report(self.excel_file), self.accept())
         )
 
         self.non_zero_balance_report_button = QPushButton("Non Zero Balance")
         self.non_zero_balance_report_button.setMinimumSize(100, 40)
         self.layout.addWidget(self.non_zero_balance_report_button, 2, 1)
         self.non_zero_balance_report_button.clicked.connect(
-            lambda: self.run_reload_bnt(
-                self.excel_file,
-                generate_non_zero_balance_report,
-                MainWindow().load_excel_data,
-            )
+            lambda: (generate_non_zero_balance_report(self.excel_file), self.accept())
         )
 
         self.stage_reports_button = QPushButton("Stage Reports")
         self.stage_reports_button.setMinimumSize(100, 40)
         self.layout.addWidget(self.stage_reports_button, 3, 0)
         self.stage_reports_button.clicked.connect(
-            lambda: self.run_reload_bnt(
-                self.excel_file,
-                generate_stage_reports,
-                MainWindow().load_excel_data,
-            )
+            lambda: (generate_stage_reports(self.excel_file), self.accept())
         )
-
-    def run_reload_bnt(self, file_path, func1, load_func):
-        func1(file_path)
-        load_func(file_path)
-        print("app reloaded")
 
 
 def run():
