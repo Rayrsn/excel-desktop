@@ -395,14 +395,8 @@ def generate_empty_counsel_report(filepath):
     # Get references to worksheets
     crown_court_sheet = workbook["Crown Court Merge"]
     report_sheet_name = "Empty Counsel Report"
-    report_sheet = workbook.create_sheet(report_sheet_name)
-    # report_sheet = workbook.get_sheet_by_name(report_sheet_name)
-    # if not report_sheet:
-    #     report_sheet = workbook.create_sheet(report_sheet_name)
-    # else:
-    for row in report_sheet.iter_rows():
-        for cell in row:
-            cell.value = None  # Clear existing data
+
+    report_sheet = create_sheet(workbook, report_sheet_name)
 
     # Define counsel column index (assuming headers are in the first row)
     counsel_col = get_column_index(crown_court_sheet, 1, "Name of Counsel")
@@ -415,19 +409,10 @@ def generate_empty_counsel_report(filepath):
 
     # Initialize report row
     report_row = 2
-
     # Extract data from Crown Court sheet with empty counsel names
     extract_data_for_empty_counsel(
         crown_court_sheet.iter_rows(min_row=2), report_sheet, report_row, counsel_col
     )
-
-    # Create a table from the report data
-    report_table = openpyxl.worksheet.table.Table(
-        displayName="Empty Counsel Report",
-        ref="A1:" + report_sheet.cells(report_sheet.max_row, 1).end(xlUp).row,
-    )
-    report_table.table_style = "TableStyleLight9"  # Optional table style
-    report_sheet.add_table(report_table)
 
     # Save the workbook
     workbook.save(filepath)
@@ -578,10 +563,13 @@ if __name__ == "__main__":
     filepath = "../Law Clients_test_month_sheet.sh.xlsx"
 
     # generate_non_zero_balance_report(filepath)
-    # generate_empty_counsel_report(filepath)
     # generate_bail_refused_report(filepath)
-    generate_legal_aid_report(filepath)
+    # generate_stage_reports(filepath)
 
+    # +---------------------+
+    # |  Checked Functions  |
+    # +---------------------+
+    # generate_legal_aid_report(filepath)
+    # generate_empty_counsel_report(filepath)
     # generate_weekly_cases_report(filepath)
     # generate_monthly_cases_report(filepath)
-    # generate_stage_reports(filepath)
