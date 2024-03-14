@@ -63,7 +63,7 @@ jobs:
 
       - name: Build executable with PyInstaller
         run: |
-          pyinstaller --onefile build/your_app.py
+          pyinstaller --onefile --windowed main.py
 
       # - name: Run tests (if applicable)
       #   run: |
