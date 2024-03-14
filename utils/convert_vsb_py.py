@@ -439,14 +439,8 @@ def generate_non_zero_balance_report(filepath):
     # Get references to worksheets
     road_traffic_sheet = workbook["Road Traffic"]
     report_sheet_name = "Non-Zero Balance Report"
-    report_sheet = workbook.create_sheet(report_sheet_name)
-    # report_sheet = workbook.get_sheet_by_name(report_sheet_name)
-    # if not report_sheet:
-    #     report_sheet = workbook.create_sheet(report_sheet_name)
-    # else:
-    for row in report_sheet.iter_rows():
-        for cell in row:
-            cell.value = None  # Clear existing data
+
+    report_sheet = create_sheet(workbook, report_sheet_name)
 
     # Define balance column index (assuming headers are in the first row)
     balance_col = get_column_index(road_traffic_sheet, 1, "Balance")
@@ -465,14 +459,6 @@ def generate_non_zero_balance_report(filepath):
         road_traffic_sheet.iter_rows(min_row=2), report_sheet, report_row, balance_col
     )
 
-    # Create a table from the report data
-    report_table = openpyxl.worksheet.table.Table(
-        displayName="Non-Zero Balance Report",
-        ref="A1:" + report_sheet.cells(report_sheet.max_row, 1).end(xlUp).row,
-    )
-    report_table.table_style = "TableStyleLight9"  # Optional table style
-    report_sheet.add_table(report_table)
-
     # Save the workbook
     workbook.save(filepath)
 
@@ -484,7 +470,9 @@ def extract_data_for_non_zero_balance(data_rows, report_sheet, report_row, balan
 
     for row in data_rows:
         cells = [cell.value for cell in row]
-        if cells[balance_col - 1] is not None and cells[balance_col - 1] != 0:
+        # print(cells[balance_col - 2])
+        # print(cells)
+        if cells[balance_col - 2] is not None and cells[balance_col - 2] != 0:
             for i in range(len(cells)):
                 report_sheet.cell(row=report_row, column=i + 1).value = cells[i]
             report_row += 1
@@ -562,13 +550,13 @@ def extract_data_for_stage_report(row_num, ws, report_sheet, report_row):
 if __name__ == "__main__":
     filepath = "../Law Clients_test_month_sheet.sh.xlsx"
 
-    # generate_non_zero_balance_report(filepath)
     # generate_bail_refused_report(filepath)
     # generate_stage_reports(filepath)
 
     # +---------------------+
     # |  Checked Functions  |
     # +---------------------+
+    # generate_non_zero_balance_report(filepath)
     # generate_legal_aid_report(filepath)
     # generate_empty_counsel_report(filepath)
     # generate_weekly_cases_report(filepath)
