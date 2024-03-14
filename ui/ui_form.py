@@ -115,7 +115,7 @@ class Ui_MainWindow(object):
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"BKP Solicitors", None))
         self.importbutton.setText(QCoreApplication.translate("MainWindow", u"Import", None))
         self.newentrybutton.setText(QCoreApplication.translate("MainWindow", u"New Entry", None))
         self.exportbutton.setText(QCoreApplication.translate("MainWindow", u"Export to Word Document", None))
