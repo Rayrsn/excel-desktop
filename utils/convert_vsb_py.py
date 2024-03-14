@@ -129,43 +129,35 @@ def generate_weekly_cases_report(filepath):
     # Get references to worksheets
     data_worksheet = workbook["Opening File"]
     report_worksheet_name = "Upcoming Cases this Week"
-    workbook.create_sheet(report_worksheet_name)
-    report_worksheet = workbook[report_worksheet_name]
-    # report_worksheet = workbook.get_sheet_by_name(report_worksheet_name)
-    # if not report_worksheet:
-    #     report_worksheet = workbook.create_sheet(report_worksheet_name)
-    # else:
-    for row in report_worksheet.iter_rows():
-        for cell in row:
-            cell.value = None  # Clear existing data
+    try:
+        report_worksheet = workbook[report_worksheet_name]
 
-    # Get references to tables
-    master_data_table = data_worksheet["MasterData"]
+        # clear sheet
+        for row in report_worksheet.iter_rows():
+            for cell in row:
+                cell.value = None
+    except:
+        report_worksheet = workbook.create_sheet(report_worksheet_name)
 
     # Calculate start and end dates for the current week
-    today = date.today()
+    today = datetime.today()
     weekday = today.weekday()  # 0 for Monday, 6 for Sunday
     start_date = today - timedelta(days=weekday)  # Monday of the current week
     end_date = start_date + timedelta(days=6)  # Sunday of the current week
 
     # Filter data for the current week
-    header_row = master_data_table.min_row
+    _, date_opened_vals = get_column_val(data_worksheet, 17, 7)
     filtered_data = [
-        row
-        for row in master_data_table.iter_rows(min_row=header_row + 1)
-        if start_date <= row[0].value <= end_date
+        (index + 18, cell)  # add 17 for 17 row was skip
+        for index, cell in date_opened_vals
+        if start_date <= cell <= end_date
     ]
 
-    # Copy filtered data to report worksheet
-    report_worksheet.append(master_data_table[header_row])  # Paste headers
-    for row in filtered_data:
-        report_worksheet.append([cell.value for cell in row])
+    # copy header into report worksheet
+    write_header(workbook=workbook, target_sh_name=report_worksheet_name)
 
-    # Convert pasted data to Excel table
-    report_table = openpyxl.worksheet.table.Table(
-        displayName="Upcoming_Cases_Table", ref=report_worksheet.tables.tables[0].ref
-    )
-    report_worksheet.add_table(report_table)
+    # copy filtered_data into report sheet
+    write_rows(filepath, target_sh=report_worksheet, rows=filtered_data)
 
     # Save the workbook
     workbook.save(filepath)
@@ -576,7 +568,6 @@ if __name__ == "__main__":
     # generate_bail_refused_report(filepath)
     # generate_legal_aid_report(filepath)
 
-    # generate_weekly_cases_report(filepath)
-    generate_monthly_cases_report(filepath)
+    generate_weekly_cases_report(filepath)
+    # generate_monthly_cases_report(filepath)
     # generate_stage_reports(filepath)
-    # x = read_rows_with_numbers(filepath)
