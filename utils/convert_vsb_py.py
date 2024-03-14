@@ -52,6 +52,18 @@ def first_sh_rows_with_numbers(filepath):
     return data_with_row_numbers
 
 
+def create_sheet(workbook, sheet_name):
+    try:
+        report_worksheet = workbook[sheet_name]
+
+        # clear sheet
+        for row in report_worksheet.iter_rows():
+            for cell in row:
+                cell.value = None
+    except:
+        report_worksheet = workbook.create_sheet(sheet_name)
+
+
 def write_header(
     workbook, target_sh_name, source_sh="Opening File", start_header_row=17
 ):
@@ -89,15 +101,9 @@ def generate_monthly_cases_report(filepath):
     # Get references to worksheets
     data_worksheet = workbook["Opening File"]
     report_worksheet_name = "Upcoming Cases this Month"
-    try:
-        report_worksheet = workbook[report_worksheet_name]
 
-        # clear sheet
-        for row in report_worksheet.iter_rows():
-            for cell in row:
-                cell.value = None
-    except:
-        report_worksheet = workbook.create_sheet(report_worksheet_name)
+    # create report sheet
+    create_sheet(workbook, report_worksheet_name)
 
     current_month_start = datetime.now().replace(day=1)
     current_month_end = (current_month_start + relativedelta(months=+1)) - timedelta(
@@ -129,15 +135,9 @@ def generate_weekly_cases_report(filepath):
     # Get references to worksheets
     data_worksheet = workbook["Opening File"]
     report_worksheet_name = "Upcoming Cases this Week"
-    try:
-        report_worksheet = workbook[report_worksheet_name]
 
-        # clear sheet
-        for row in report_worksheet.iter_rows():
-            for cell in row:
-                cell.value = None
-    except:
-        report_worksheet = workbook.create_sheet(report_worksheet_name)
+    # create report sheet
+    create_sheet(workbook, report_worksheet_name)
 
     # Calculate start and end dates for the current week
     today = datetime.today()
