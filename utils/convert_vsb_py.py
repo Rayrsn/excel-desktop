@@ -30,7 +30,7 @@ def get_column_val(data_worksheet, start_row, column_num):
     return (header, values)
 
 
-def read_rows_with_numbers(filepath):
+def first_sh_rows_with_numbers(filepath):
     """Reads rows from the first sheet and saves them in a list with row numbers."""
 
     workbook = openpyxl.load_workbook(filepath)
@@ -52,30 +52,53 @@ def read_rows_with_numbers(filepath):
     return data_with_row_numbers
 
 
+def write_header(
+    workbook, target_sh_name, source_sh="Opening File", start_header_row=17
+):
+    """Copy header from source sheet into target sheeet"""
+    # Get references to worksheets
+    data_worksheet = workbook[source_sh]
+
+    # Filter data for the current month
+    header_row = data_worksheet[start_header_row]
+    report_worksheet = workbook[target_sh_name]
+    for index, header in enumerate(header_row):
+        report_worksheet.cell(
+            row=0 + 1, column=index + 1, value=header_row[index].value
+        )
+
+
+def write_rows(filepath, target_sh, rows, start_row=2):
+    """Write rows rows list"""
+    # NOTE : this fucntion write for generate_monthly_cases_report and it filter
+
+    f_sh_rows = first_sh_rows_with_numbers(filepath)
+    for row_num, row in rows:
+        for f_sh_row_num, row in f_sh_rows:
+            if f_sh_row_num == row_num:
+                for col, cell in enumerate(row):
+                    target_sh.cell(row=start_row, column=col + 1, value=cell)
+                start_row += 1
+
+
 def generate_monthly_cases_report(filepath):
     """Generates a monthly cases report from an Excel workbook."""
-
-    # BUG: it create one more sheet with "sheet_name + 1" it must check if sheet name is exist clear it then start function
 
     workbook = openpyxl.load_workbook(filepath)
 
     # Get references to worksheets
     data_worksheet = workbook["Opening File"]
     report_worksheet_name = "Upcoming Cases this Month"
-    workbook.create_sheet(report_worksheet_name)
-    report_worksheet = workbook[report_worksheet_name]
-    # report_worksheet = workbook.get_sheet_by_name(report_worksheet_name)
-    # if not report_worksheet:
-    #     report_worksheet = workbook.create_sheet(report_worksheet_name)
-    # else:
+    try:
+        report_worksheet = workbook[report_worksheet_name]
 
-    # clear sheet
-    for row in report_worksheet.iter_rows():
-        for cell in row:
-            cell.value = None
+        # clear sheet
+        for row in report_worksheet.iter_rows():
+            for cell in row:
+                cell.value = None
+    except:
+        report_worksheet = workbook.create_sheet(report_worksheet_name)
 
-    # Filter data for the current month
-    header_row = data_worksheet[17]
     current_month_start = datetime.now().replace(day=1)
     current_month_end = (current_month_start + relativedelta(months=+1)) - timedelta(
         days=1
@@ -87,28 +110,11 @@ def generate_monthly_cases_report(filepath):
         if current_month_start <= cell <= current_month_end
     ]
 
-    # +-------------------------------------+
-    # |  copy header into report worksheet  |
-    # +-------------------------------------+
+    # copy header into report worksheet
+    write_header(workbook=workbook, target_sh_name=report_worksheet_name)
 
-    for index, header in enumerate(header_row):
-        report_worksheet.cell(
-            row=0 + 1, column=index + 1, value=header_row[index].value
-        )
-
-    # +--------------------------------------------+
-    # |    copy filtered_data into report sheet    |
-    # +--------------------------------------------+
-
-    # pprint(filtered_data)
-    x = read_rows_with_numbers(filepath)
-    target_row = 2
-    for row_num, row in filtered_data:
-        for f_sh_row_num, row in x:
-            if f_sh_row_num == row_num:
-                for col, cell in enumerate(row):
-                    report_worksheet.cell(row=target_row, column=col + 1, value=cell)
-                target_row += 1
+    # copy filtered_data into report sheet
+    write_rows(filepath, target_sh=report_worksheet, rows=filtered_data)
 
     workbook.save(filepath)
 
@@ -563,7 +569,7 @@ def extract_data_for_stage_report(row_num, ws, report_sheet, report_row):
 
 
 if __name__ == "__main__":
-    filepath = "../Law Clients.xlsm"
+    filepath = "../Law Clients_test_month_sheet.sh.xlsx"
 
     # generate_non_zero_balance_report(filepath)
     # generate_empty_counsel_report(filepath)
