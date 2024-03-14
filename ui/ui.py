@@ -315,30 +315,58 @@ class OperationsDialog(QDialog):
 
         self.layout = QGridLayout(self)
 
-        btns = {
-            "Casess this Month": lambda x: generate_monthly_cases_report(x),
-            "Cases this Week": lambda x: generate_weekly_cases_report(x),
-            "Generate Legal Aid Report": lambda x: generate_legal_aid_report(x),
-            "Crown Court Cases without Counsel": lambda x: generate_empty_counsel_report(
-                x
-            ),
-            "Clients in Prison": lambda x: generate_bail_refused_report(x),
-            "Outstanding Blance for Road Traffic": lambda x: generate_non_zero_balance_report(
-                x
-            ),
-            "Report of upcoming Crown Court Dates": lambda x: generate_stage_reports(x),
-        }
+        self.monthly_cases_report_button = QPushButton("Cases this Month")
+        self.monthly_cases_report_button.setMinimumSize(
+            100, 40
+        )  # change size of button
+        self.layout.addWidget(
+            self.monthly_cases_report_button, 0, 0
+        )  # add button to layout
+        self.monthly_cases_report_button.clicked.connect(
+            lambda: generate_monthly_cases_report(self.excel_file)
+        )
 
-        # Create 7 buttons and add them to the layout
-        for i, (btn, btn_func) in enumerate(btns.items()):
-            button = QPushButton(f"{btn}", self)
-            button.clicked.connect(lambda _: btn_func(self.excel_file))
-            button.setMinimumSize(100, 40)  # Make the buttons big
-            self.layout.addWidget(button, i // 2, i % 2)
+        self.weekly_cases_report_button = QPushButton("Cases this Week")
+        self.weekly_cases_report_button.setMinimumSize(100, 40)
+        self.layout.addWidget(self.weekly_cases_report_button, 0, 1)
+        self.weekly_cases_report_button.clicked.connect(
+            lambda: generate_weekly_cases_report(self.excel_file)
+        )
 
-        # Add stretchable spaces to fill the remaining rows
-        for i in range(7, 8 * 2):
-            self.layout.addItem(QSpacerItem(20, 40), i // 2, i % 2)
+        self.legal_aid_report_button = QPushButton("Legal Aid")
+        self.legal_aid_report_button.setMinimumSize(100, 40)
+        self.layout.addWidget(self.legal_aid_report_button, 1, 0)
+        self.legal_aid_report_button.clicked.connect(
+            lambda: generate_legal_aid_report(self.excel_file)
+        )
+
+        self.bail_refused_report_button = QPushButton("Bail Refused")
+        self.bail_refused_report_button.setMinimumSize(100, 40)
+        self.layout.addWidget(self.bail_refused_report_button, 1, 1)
+        self.bail_refused_report_button.clicked.connect(
+            lambda: generate_bail_refused_report(self.excel_file)
+        )
+
+        self.empty_counsel_report_button = QPushButton("Empty Counsel")
+        self.empty_counsel_report_button.setMinimumSize(100, 40)
+        self.layout.addWidget(self.empty_counsel_report_button, 2, 0)
+        self.empty_counsel_report_button.clicked.connect(
+            lambda: generate_empty_counsel_report(self.excel_file)
+        )
+
+        self.non_zero_balance_report_button = QPushButton("Non Zero Balance")
+        self.non_zero_balance_report_button.setMinimumSize(100, 40)
+        self.layout.addWidget(self.non_zero_balance_report_button, 2, 1)
+        self.non_zero_balance_report_button.clicked.connect(
+            lambda: generate_non_zero_balance_report(self.excel_file)
+        )
+
+        self.stage_reports_button = QPushButton("Stage Reports")
+        self.stage_reports_button.setMinimumSize(100, 40)
+        self.layout.addWidget(self.stage_reports_button, 3, 0)
+        self.stage_reports_button.clicked.connect(
+            lambda: generate_stage_reports(self.excel_file)
+        )
 
 
 def run():
