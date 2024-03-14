@@ -27,7 +27,7 @@ jobs:
         if: runner.os == 'macos'
         run: |
           brew update
-          brew install python3  # Assuming Homebrew has Python 3.12 available
+          # brew install python3  # Assuming Homebrew has Python 3.12 available
 
       # - name: Install dependencies (Windows)
       #   if: runner.os == 'windows-latest'
