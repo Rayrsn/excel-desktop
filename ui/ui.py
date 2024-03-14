@@ -32,6 +32,15 @@ from ui.ui_form import Ui_MainWindow
 from update_doc_file import gen_docs
 
 import openpyxl
+from utils.btn import (
+    generate_monthly_cases_report,
+    generate_weekly_cases_report,
+    generate_legal_aid_report,
+    generate_bail_refused_report,
+    generate_empty_counsel_report,
+    generate_non_zero_balance_report,
+    generate_stage_reports,
+)
 
 # excel_file = "../docs/Law Clients Excel Sheet Shared_MainV3.xlsm"
 
@@ -226,7 +235,7 @@ class MainWindow(QMainWindow):
                 )
 
     def show_operations_dialog(self):
-        dialog = OperationsDialog(self)
+        dialog = OperationsDialog(self.excel_file)
         dialog.exec()
 
     def closeApplication(self):
@@ -295,24 +304,35 @@ class NewEntryDialog(QDialog):
 
 
 class OperationsDialog(QDialog):
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    # def __init__(self, filepath, parent=None):
+    def __init__(self, filepath):
+        # super().__init__(parent)
+        super().__init__()
+
+        self.excel_file = filepath
+
         self.setWindowTitle("Operations")
 
         self.layout = QGridLayout(self)
 
-        buttons_name = [
-            "Casess this Month",
-            "Generate Legal Aid Report",
-            "Crown Court Cases without Counsel",
-            "Report of upcoming Crown Court Dates",
-            "Cases this Week",
-            "Clients in Prison",
-            "Outstanding Blance for Road Traffic",
-        ]
+        btns = {
+            "Casess this Month": lambda x: generate_monthly_cases_report(x),
+            "Cases this Week": lambda x: generate_weekly_cases_report(x),
+            "Generate Legal Aid Report": lambda x: generate_legal_aid_report(x),
+            "Crown Court Cases without Counsel": lambda x: generate_empty_counsel_report(
+                x
+            ),
+            "Clients in Prison": lambda x: generate_bail_refused_report(x),
+            "Outstanding Blance for Road Traffic": lambda x: generate_non_zero_balance_report(
+                x
+            ),
+            "Report of upcoming Crown Court Dates": lambda x: generate_stage_reports(x),
+        }
+
         # Create 7 buttons and add them to the layout
-        for i, btn in enumerate(buttons_name):
+        for i, (btn, btn_func) in enumerate(btns.items()):
             button = QPushButton(f"{btn}", self)
+            button.clicked.connect(lambda _: btn_func(self.excel_file))
             button.setMinimumSize(100, 40)  # Make the buttons big
             self.layout.addWidget(button, i // 2, i % 2)
 
