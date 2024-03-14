@@ -54,7 +54,7 @@ class MainWindow(QMainWindow):
         # self.load_excel_data()
         self.ui.exitbutton.clicked.connect(self.closeApplication)
         self.ui.importbutton.clicked.connect(self.openFile)
-        self.ui.exportbutton.clicked.connect(gen_docs)
+        self.ui.exportbutton.clicked.connect(self.gen_docs_btn)
         self.ui.newentrybutton.clicked.connect(self.ask_for_new_entry)
         self.ui.operationsbutton.clicked.connect(self.show_operations_dialog)
         
@@ -86,9 +86,9 @@ class MainWindow(QMainWindow):
                 background-color: #666;
                 border: 1px solid #999;
             }
-            
-            QPushButton {
-                background-color: #007cff; /* Green */
+
+            QWidget > QPushButton {
+                background-color: #007bff; /* Green */
                 border: none;
                 color: white;
                 padding: 15px 32px;
@@ -98,10 +98,11 @@ class MainWindow(QMainWindow):
                 margin: 4px 2px;
             }
 
-            QPushButton:hover {
+            QWidget > QPushButton:hover {
                 background-color: #3094fd;
             }
         """)
+
         
         
         # clear existing tabs
@@ -281,6 +282,12 @@ class MainWindow(QMainWindow):
                 tableWidget.setItem(
                     tableWidget.rowCount() - 1, i, QTableWidgetItem(str(value))
                 )
+                
+    def gen_docs_btn(self):
+        if gen_docs():
+            QMessageBox.information(self, "Success", "Word documents successfully generated! Files are placed in the Docs folder.")
+        else:
+            self.showAlarm("Error", "Word documents generation failed!")
 
     def show_operations_dialog(self):
         dialog = OperationsDialog(self.excel_file)
@@ -295,7 +302,24 @@ class NewEntryDialog(QDialog):
     def __init__(self, wb, parent=None):
         super().__init__(parent)
         self.setWindowTitle("New Entry")
+        
+        self.setStyleSheet("""
+            QPushButton {
+                background-color: #007cff; /* Green */
+                border: none;
+                color: white;
+                padding: 15px 32px;
+                text-align: center;
+                text-decoration: none;
+                font-size: 16px;
+                margin: 4px 2px;
+            }
 
+            QPushButton:hover {
+                background-color: #3094fd;
+            }
+        """)
+        
         # Set the size of the dialog to be 3/4 of the size of the parent
         if parent is not None:
             self.resize(parent.size() * 0.5)
@@ -355,6 +379,23 @@ class NewEntryDialog(QDialog):
 class OperationsDialog(QDialog):
     def __init__(self, filepath):
         super().__init__()
+        
+        self.setStyleSheet("""
+            QPushButton {
+                background-color: #007cff; /* Green */
+                border: none;
+                color: white;
+                padding: 15px 32px;
+                text-align: center;
+                text-decoration: none;
+                font-size: 16px;
+                margin: 4px 2px;
+            }
+            
+            QPushButton:hover {
+                background-color: #3094fd;
+            }
+        """)
 
         self.excel_file = filepath
 
