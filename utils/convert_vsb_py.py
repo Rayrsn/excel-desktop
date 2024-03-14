@@ -65,32 +65,54 @@ def create_sheet(workbook, sheet_name):
 
 
 def write_header(
-    workbook, target_sh_name, source_sh="Opening File", start_header_row=17
-):
-    """Copy header from source sheet into target sheeet"""
-    # Get references to worksheets
-    data_worksheet = workbook[source_sh]
+    workbook,
+    target_sh_name,
+    source_sh="Opening File",
+    start_header_row=17,
+    header_list=None,
+) -> bool:
+    """
+    Write header into target sheeet
+    it work with get source sheet or header list
+    """
 
-    # Filter data for the current month
-    header_row = data_worksheet[start_header_row]
     report_worksheet = workbook[target_sh_name]
-    for index, header in enumerate(header_row):
-        report_worksheet.cell(
-            row=0 + 1, column=index + 1, value=header_row[index].value
-        )
+
+    # Get references to worksheets
+    if source_sh:
+        data_worksheet = workbook[source_sh]
+        # Filter data for the current month
+        header_row = data_worksheet[start_header_row]
+        for index, header in enumerate(header_row):
+            report_worksheet.cell(
+                row=0 + 1, column=index + 1, value=header_row[index].value
+            )
+    elif header_list and not source_sh:
+        for index, header_item in enumerate(header_list):
+            report_worksheet.cell(row=0 + 1, column=index + 1, value=header_item)
+    else:
+        return False
+
+    return True
 
 
-def write_rows(filepath, target_sh, rows, start_row=2):
+def write_rows(filepath, target_sh, rows, start_row=2, is_first_sh_filter=False):
     """Write rows rows list"""
     # NOTE : this fucntion write for generate_monthly_cases_report and it filter
 
-    f_sh_rows = first_sh_rows_with_numbers(filepath)
-    for row_num, row in rows:
-        for f_sh_row_num, row in f_sh_rows:
-            if f_sh_row_num == row_num:
-                for col, cell in enumerate(row):
-                    target_sh.cell(row=start_row, column=col + 1, value=cell)
-                start_row += 1
+    if is_first_sh_filter:
+        f_sh_rows = first_sh_rows_with_numbers(filepath)
+        for row_num, row in rows:
+            for f_sh_row_num, row in f_sh_rows:
+                if f_sh_row_num == row_num:
+                    for col, cell in enumerate(row):
+                        target_sh.cell(row=start_row, column=col + 1, value=cell)
+                    start_row += 1
+    else:
+        for row_num, row in enumerate(rows):
+            for col, cell in row:
+                target_sh.cell(row=start_row, column=col + 1, value=cell)
+            start_row += 1
 
 
 def generate_monthly_cases_report(filepath):
