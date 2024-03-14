@@ -378,13 +378,13 @@ def get_column_index(worksheet, header_row, header_text):
     return 0  # Return 0 if header not found
 
 
-# def get_column_index(worksheet, header):
-#     """Gets the column index of a header in a worksheet."""
+def get_stage_column_index(worksheet, header):
+    """Gets the column index of a header in a worksheet."""
 
-#     for col, value in enumerate(worksheet.iter_rows(min_row=1), 1):
-#         if header in value:
-#             return col
-#     return 0
+    for col, value in enumerate(worksheet.iter_rows(min_row=1), 1):
+        if header in value:
+            return col
+    return 0
 
 
 def generate_empty_counsel_report(filepath):
@@ -483,7 +483,7 @@ def generate_stage_reports(filepath):
 
     workbook = openpyxl.load_workbook(filepath)
     crown_court_sheet = workbook["Crown Court Merge"]
-    current_month = datetime.date.today().month
+    current_month = datetime.today().month
 
     # Generate reports for each stage
     stages = ["Stage 1", "Stage 2", "Stage 3", "Stage 4"]
@@ -498,15 +498,10 @@ def generate_stage_report(workbook, ws, stage, current_month):
     """Generates a report for a specific stage and month."""
 
     report_sheet_name = stage + " Report"
-    report_sheet = workbook.get_sheet_by_name(report_sheet_name)
-    if not report_sheet:
-        report_sheet = workbook.create_sheet(report_sheet_name)
-    else:
-        for row in report_sheet.iter_rows():
-            for cell in row:
-                cell.value = None  # Clear existing data
 
-    stage_col = get_column_index(ws, stage)
+    report_sheet = create_sheet(workbook, report_sheet_name)
+
+    stage_col = get_stage_column_index(ws, stage)
 
     # Copy headers
     for i in range(1, ws.max_column + 1):
@@ -518,20 +513,12 @@ def generate_stage_report(workbook, ws, stage, current_month):
     for cell in ws.iter_cols(min_row=2, min_col=stage_col, max_col=stage_col):
         for row_cell in cell:
             if (
-                isinstance(row_cell.value, datetime.date)
+                isinstance(row_cell.value, datetime)
                 and row_cell.value.month == current_month
             ):
                 extract_data_for_stage_report(
                     row_cell.row, ws, report_sheet, report_row
                 )
-
-    # Create a table
-    report_table = openpyxl.worksheet.table.Table(
-        displayName=stage,
-        ref="A1:" + report_sheet.cells(report_sheet.max_row, 1).end("up").row,
-    )
-    report_table.table_style = "TableStyleLight9"  # Optional table style
-    report_sheet.add_table(report_table)
 
     if report_row == 2:
         print(f"No data found for {stage}")
@@ -551,11 +538,11 @@ if __name__ == "__main__":
     filepath = "../Law Clients_test_month_sheet.sh.xlsx"
 
     # generate_bail_refused_report(filepath)
-    # generate_stage_reports(filepath)
 
     # +---------------------+
     # |  Checked Functions  |
     # +---------------------+
+    # generate_stage_reports(filepath)
     # generate_non_zero_balance_report(filepath)
     # generate_legal_aid_report(filepath)
     # generate_empty_counsel_report(filepath)
