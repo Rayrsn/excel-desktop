@@ -1,171 +1,204 @@
 import openpyxl
 from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 from pprint import pprint
 
-
-def generate_bail_refused_report(workbook_path):
-    workbook = openpyxl.load_workbook(workbook_path)
-
-    magistrates_sheet = workbook["Magistrates_Merge"]
-    crown_court_sheet = workbook["Crown Court Merge"]
-    # report_sheet = workbook.get_sheet_by_name(
-    #     "Clients in Prison Report"
-    # )  # Get existing or create new
-
-    # if not report_sheet:
-    report_sheet = workbook.create_sheet("Clients in Prison Report")
-
-    bail_col = get_column_index(magistrates_sheet, "Bail")
-    prison_number_col = get_column_index(magistrates_sheet, "Prison Number")
-    file_no_col = get_column_index(magistrates_sheet, "File No.")
-
-    copy_headers(magistrates_sheet, report_sheet)
-
-    report_row = 2  # Start from row 2 to leave space for headers
-    unique_file_numbers = set()
-
-    extract_data_for_bail_refused(
-        magistrates_sheet,
-        report_sheet,
-        report_row,
-        bail_col,
-        prison_number_col,
-        file_no_col,
-        unique_file_numbers,
-    )
-    extract_data_for_bail_refused(
-        crown_court_sheet,
-        report_sheet,
-        report_row,
-        bail_col,
-        prison_number_col,
-        file_no_col,
-        unique_file_numbers,
-    )
-
-    workbook.save(workbook_path)
-    print("Bail refused report generated successfully!")
+# from pprint import pprint
 
 
-def extract_data_for_bail_refused(
-    data_sheet,
-    report_sheet,
-    report_row,
-    bail_col,
-    prison_number_col,
-    file_no_col,
-    unique_file_numbers,
+def get_column_val(
+    column_num,
+    workbook,
+    data_worksheet_name="Opening File",
+    start_row=17,
 ):
-    criteria = ["Bail Refused", "JC Bail Refused"]
+    """
+    get value of column that are not None and save them in array
+    output:
+        (
+            header,
+            [(index, value), ...]
+        )
 
-    for row in data_sheet.iter_rows(min_row=2):  # Skip header row
-        bail_value = row[bail_col - 1].value
-        prison_number = row[prison_number_col - 1].value
-        file_no = row[file_no_col - 1].value
+    """
 
-        if (
-            bail_value in criteria
-            and prison_number is not None
-            and file_no not in unique_file_numbers
-        ):
-            unique_file_numbers.add(file_no)
-            for i in range(1, 18):  # Copy 17 columns
-                report_sheet.cell(row=report_row, column=i).value = row[i - 1].value
-            report_row += 1
-
-
-def get_column_index(sheet, header):
-    header_row = next(sheet.iter_rows(min_row=1, max_row=1))  # Get first row
-    for cell in header_row:
-        if cell.value == header:
-            return cell.column
-    return 0
-
-
-def copy_headers(source_sheet, target_sheet):
-    for i in range(1, 18):  # Copy 17 headers
-        target_sheet.cell(row=1, column=i).value = source_sheet.cell(
-            row=1, column=i
-        ).value
-
-
-####################
-def create_upcoming_month_sheet(workbook_path):
-    wb = openpyxl.load_workbook(workbook_path)
-
-    # Access the "Opening File" worksheet
-    ws_source = wb["Opening File"]
-
-    # Check if "Upcoming Cases this Month" sheet exists, if not create it
-    if "Upcoming Cases this Month" not in wb.sheetnames:
-        wb.create_sheet("Upcoming Cases this Month")
-    ws_target = wb["Upcoming Cases this Month"]
-
-    # Assuming the first row is the header and we're filtering based on a condition in column 1
-    # Copy header row to target sheet
-    for col in range(1, ws_source.max_column + 1):
-        ws_target.cell(row=1, column=col).value = ws_source.cell(
-            row=1, column=col
-        ).value
-
-    target_row = 1  # Start writing to the second row of the target sheet
-    # data of first sheet will start from 17 row
-    for index, row in enumerate(ws_source.iter_rows(min_row=17, values_only=True)):
-        # Apply filtering condition - for example, checking a date or a specific text
-        # This is where you'd customize based on your actual filter condition
+    data_worksheet = workbook[data_worksheet_name]
+    values = []
+    for index, row in enumerate(
+        data_worksheet.iter_rows(min_row=start_row, values_only=True)
+    ):
         if index == 0:
-            print("yes it is ")
-            for col, value in enumerate(row, start=1):
-                ws_target.cell(row=target_row, column=col).value = value
-            target_row += 1
-        elif date_open_filter(row) and row:
-            for col, value in enumerate(row, start=1):
-                ws_target.cell(row=target_row, column=col).value = value
-            target_row += 1
-
-    # Save the workbook with the new data
-    wb.save("upcommit_month.xlsm")
+            header = row[column_num]
+            continue
+        if row[column_num] is None:
+            continue
+        values.append((index, row[column_num]))
+    return (header, values)
 
 
-def create_upcoming_week_sheet(workbook_path):
-    wb = openpyxl.load_workbook(workbook_path)
+def first_sh_rows_with_numbers(filepath):
+    """Reads rows from the first sheet and saves them in a list with row numbers."""
 
-    # Access the "Opening File" worksheet
-    ws_source = wb["Opening File"]
+    workbook = openpyxl.load_workbook(filepath)
+    sheet = workbook["Opening File"]
 
-    # Check if "Upcoming Cases this Month" sheet exists, if not create it
-    if "Upcoming Cases this Month" not in wb.sheetnames:
-        wb.create_sheet("Upcoming Cases this Month")
-    ws_target = wb["Upcoming Cases this Month"]
+    data_with_row_numbers = []
+    # 17 row is header
+    for row_num, row in enumerate(
+        sheet.iter_rows(min_row=17),
+        start=17 + 1,  # add 1 because of row in excel file start with 1
+    ):
+        # filter empty row with first column
+        if row[0].value == None:
+            continue
+        # Skip the header row (row 1)
+        data_list = [cell.value for cell in row]
+        data_with_row_numbers.append((row_num, data_list))
 
-    # Assuming the first row is the header and we're filtering based on a condition in column 1
-    # Copy header row to target sheet
-    for col in range(1, ws_source.max_column + 1):
-        ws_target.cell(row=1, column=col).value = ws_source.cell(
-            row=1, column=col
-        ).value
-
-    target_row = 1  # Start writing to the second row of the target sheet
-    # data of first sheet will start from 17 row
-    for index, row in enumerate(ws_source.iter_rows(min_row=17, values_only=True)):
-        # Apply filtering condition - for example, checking a date or a specific text
-        # This is where you'd customize based on your actual filter condition
-        if index == 0:
-            print("yes it is ")
-            for col, value in enumerate(row, start=1):
-                ws_target.cell(row=target_row, column=col).value = value
-            target_row += 1
-        elif date_open_filter(row) and row:
-            for col, value in enumerate(row, start=1):
-                ws_target.cell(row=target_row, column=col).value = value
-            target_row += 1
-
-    # Save the workbook with the new data
-    wb.save("upcommit_month.xlsm")
+    return data_with_row_numbers
 
 
-def create_legal_aid_report_sheet(workbook_path):
-    def calc_report_vars(last_column_values):
+def create_sheet(workbook, sheet_name):
+    """create sheet and return it"""
+    try:
+        report_worksheet = workbook[sheet_name]
+
+        # clear sheet
+        for row in report_worksheet.iter_rows():
+            for cell in row:
+                cell.value = None
+    except:
+        report_worksheet = workbook.create_sheet(sheet_name)
+    return report_worksheet
+
+
+def write_header(
+    workbook,
+    target_sh_name,
+    source_sh="Opening File",
+    start_header_row=17,
+    header_list=None,
+) -> bool:
+    """
+    Write header into target sheeet
+    it work with get source sheet or header list
+    """
+
+    report_worksheet = workbook[target_sh_name]
+
+    # Get references to worksheets
+    if source_sh:
+        data_worksheet = workbook[source_sh]
+        # Filter data for the current month
+        header_row = data_worksheet[start_header_row]
+        for index, header in enumerate(header_row):
+            report_worksheet.cell(
+                row=0 + 1, column=index + 1, value=header_row[index].value
+            )
+    elif header_list and not source_sh:
+        for index, header_item in enumerate(header_list):
+            report_worksheet.cell(row=0 + 1, column=index + 1, value=header_item)
+    else:
+        return False
+
+    return True
+
+
+def write_rows(filepath, target_sh, rows, start_row=2, is_first_sh_filter=False):
+    """Write rows rows list"""
+    # NOTE : this fucntion write for generate_monthly_cases_report and it filter
+
+    if is_first_sh_filter:
+        f_sh_rows = first_sh_rows_with_numbers(filepath)
+        for row_num, row in rows:
+            for f_sh_row_num, row in f_sh_rows:
+                if f_sh_row_num == row_num:
+                    for col, cell in enumerate(row):
+                        target_sh.cell(row=start_row, column=col + 1, value=cell)
+                    start_row += 1
+    else:
+        for row_num, row in enumerate(rows):
+            for col, cell in row:
+                target_sh.cell(row=start_row, column=col + 1, value=cell)
+            start_row += 1
+
+
+def generate_monthly_cases_report(filepath):
+    """Generates a monthly cases report from an Excel workbook."""
+
+    workbook = openpyxl.load_workbook(filepath)
+
+    # Get references to worksheets
+    data_worksheet = workbook["Opening File"]
+    report_worksheet_name = "Upcoming Cases this Month"
+
+    # create report sheet
+    report_worksheet = create_sheet(workbook, report_worksheet_name)
+
+    current_month_start = datetime.now().replace(day=1)
+    current_month_end = (current_month_start + relativedelta(months=+1)) - timedelta(
+        days=1
+    )
+    _, date_opened_vals = get_column_val(7, workbook)
+    filtered_data = [
+        (index + 18, cell)  # add 17 for 17 row was skip
+        for index, cell in date_opened_vals
+        if current_month_start <= cell <= current_month_end
+    ]
+
+    # copy header into report worksheet
+    write_header(workbook=workbook, target_sh_name=report_worksheet_name)
+
+    # copy filtered_data into report sheet
+    write_rows(filepath, target_sh=report_worksheet, rows=filtered_data)
+
+    workbook.save(filepath)
+
+    print("Monthly cases report generated successfully!")
+
+
+def generate_weekly_cases_report(filepath):
+    """Generates a weekly cases report from an Excel workbook."""
+
+    workbook = openpyxl.load_workbook(filepath)
+
+    # Get references to worksheets
+    data_worksheet = workbook["Opening File"]
+    report_worksheet_name = "Upcoming Cases this Week"
+
+    # create report sheet
+    report_worksheet = create_sheet(workbook, report_worksheet_name)
+
+    # Calculate start and end dates for the current week
+    today = datetime.today()
+    weekday = today.weekday()  # 0 for Monday, 6 for Sunday
+    start_date = today - timedelta(days=weekday)  # Monday of the current week
+    end_date = start_date + timedelta(days=6)  # Sunday of the current week
+
+    # Filter data for the current week
+    _, date_opened_vals = get_column_val(7, workbook)
+    filtered_data = [
+        (index + 18, cell)  # add 17 for 17 row was skip
+        for index, cell in date_opened_vals
+        if start_date <= cell <= end_date
+    ]
+
+    # copy header into report worksheet
+    write_header(workbook=workbook, target_sh_name=report_worksheet_name)
+
+    # copy filtered_data into report sheet
+    write_rows(filepath, target_sh=report_worksheet, rows=filtered_data)
+
+    # Save the workbook
+    workbook.save(filepath)
+
+    print("Weekly cases report generated successfully!")
+
+
+def generate_legal_aid_report(filepath):
+    """Generates a legal aid report from an Excel workbook."""
+
+    def calc_report_vars(legal_aid_col_list):
         vals = {
             "Submitted": 0,
             "Refused": 0,
@@ -173,87 +206,337 @@ def create_legal_aid_report_sheet(workbook_path):
             "Approved": 0,
             "Appealed": 0,
         }
-        for i in last_column_values:
-            if i and i in vals:
-                vals[i] += 1
+        for index, cell in legal_aid_col_list:
+            if cell and cell in vals:
+                vals[cell] += 1
         return vals
 
-    # Load the Excel file
-    wb = openpyxl.load_workbook(workbook_path)
+    workbook = openpyxl.load_workbook(filepath)
 
-    # Select the specific sheet
-    sheet = wb["Opening File"]  # Replace 'Sheet1' with the name of your sheet
+    # Get references to worksheets
+    data_worksheet = workbook["Opening File"]
+    report_worksheet_name = "Legal Aid Report"
 
-    # Find the last column with data
-    last_column = sheet.max_column
+    # create report sheet
+    report_worksheet = create_sheet(workbook, report_worksheet_name)
 
-    # Create an empty list to store values from the last column
-    last_column_values = [
-        sheet.cell(row=row, column=last_column).value
-        for row in range(18, sheet.max_row + 1)
+    # Get references to tables
+    try:
+        header, legal_aid_col = get_column_val(36, workbook)
+    except:
+        # Check if legal aid column exists
+        print("Error: Legal Aid column not found in MasterData table!")
+        return
+
+    cell_vals = calc_report_vars(legal_aid_col)
+
+    header = [
+        "Legal Aid Category",
+        "Submitted",
+        "Refused",
+        "Date Stamped",
+        "Approved",
+        "Appealed",
+        "Total Number of Clients",
     ]
-    print(calc_report_vars(last_column_values))
 
-    # Close the Excel file
-    wb.close()
+    client_count = 0
+    for _, val in cell_vals.items():
+        client_count += val
 
+    result_row = [
+        [
+            (0, "Number of Clients"),
+            (1, cell_vals["Submitted"]),
+            (2, cell_vals["Refused"]),
+            (3, cell_vals["Date Stamped"]),
+            (4, cell_vals["Approved"]),
+            (5, cell_vals["Appealed"]),
+            (6, client_count),
+        ]
+    ]
 
-def is_current_week(date_str):
-    # Assuming the date is in 'YYYY-MM-DD' format; adjust the format as necessary
-    date_opened = datetime.strptime(date_str, "%Y-%m-%d")
+    # Write data to report worksheet
+    write_header(
+        workbook=workbook,
+        target_sh_name=report_worksheet_name,
+        source_sh="",
+        start_header_row=2,
+        header_list=header,
+    )
 
-    today = datetime.today()
-    start_week = today - timedelta(days=today.isoweekday() - 1)  # Monday
-    end_week = start_week + timedelta(days=6)  # Sunday
+    write_rows(filepath=filepath, target_sh=report_worksheet, rows=result_row)
 
-    return start_week <= date_opened <= end_week
+    # Save the workbook
+    workbook.save(filepath)
 
-
-def date_open_filter(row):
-    # Assume the "date opened" is in the first column (index 0) of the row
-    date_opened_str = row[7]
-    print(type(date_opened_str))
-    print(date_opened_str)
-
-    # Assuming the date is in 'YYYY-MM-DD' format; adjust the format as necessary
-    # date_opened = datetime.strptime(date_opened_str, "%d.%m.%Y")
-    date_opened = date_opened_str
-
-    # Get the first and last day of the current month
-    today = datetime.today()
-    first_day_of_month = datetime(today.year, today.month, 1)
-    last_day_of_month = datetime(today.year, today.month + 1, 1) - timedelta(days=1)
-
-    # Check if the date_opened falls within the current month
-    return first_day_of_month <= date_opened <= last_day_of_month
+    print("Legal aid report generated successfully!")
 
 
-def clear_worksheet(workbook_path, sheet_name):
-    wb = openpyxl.load_workbook(workbook_path)
-    ws = wb[sheet_name]
+def generate_bail_refused_report(filepath):
+    """Generates a bail refused report from an Excel workbook."""
 
-    # Check if the sheet has any data to clear
-    if ws.max_row > 0:
-        # ws.delete_rows() can be used to delete rows in the given range
-        ws.delete_rows(1, ws.max_row)
+    workbook = openpyxl.load_workbook(filepath)
 
-    # Save the workbook after clearing the sheet
-    wb.save(workbook_path)
+    # Get references to worksheets
+    magistrates_sheet = workbook["Magistrates Merge"]
+    crown_court_sheet = workbook["Crown Court Merge"]
+
+    # Create report sheet
+    report_sheet_name = "Clients in Prison Report"
+    report_sheet = create_sheet(workbook, report_sheet_name)
+
+    # Define column indices (assuming headers are in the first row)
+    bail_col = get_column_index(magistrates_sheet, 1, "Bail")
+    prison_number_col = get_column_index(magistrates_sheet, 1, "Prison Number")
+    file_no_col = get_column_index(magistrates_sheet, 1, "File No.")
+
+    # Copy headers from Magistrates Merge sheet to report sheet
+    for i in range(1, 18):  # Assuming 17 headers (A-Q)
+        report_sheet.cell(row=1, column=i).value = magistrates_sheet.cell(
+            row=1, column=i
+        ).value
+
+    # Initialize variables
+    report_row = 2  # Start from row 2 for data
+    used_file_numbers = set()  # Use a set to store unique file numbers
+
+    # Extract data from Magistrates Merge sheet
+    extract_data_for_bail_refused(
+        magistrates_sheet.iter_rows(min_row=2),
+        report_sheet,
+        report_row,
+        bail_col,
+        prison_number_col,
+        file_no_col,
+        used_file_numbers,
+    )
+
+    # Extract data from Crown Court Merge sheet
+    extract_data_for_bail_refused(
+        crown_court_sheet.iter_rows(min_row=2),
+        report_sheet,
+        report_row,
+        bail_col,
+        prison_number_col,
+        file_no_col,
+        used_file_numbers,
+    )
+
+    # exit()
+    # Save the workbook
+    workbook.save(filepath)
+
+    print("Bail refused report generated successfully!")
 
 
-def get_sheet_names(workbook):
-    """
-    Returns a list of sheet names from the provided openpyxl workbook object.
+def extract_data_for_bail_refused(
+    data_rows,
+    report_sheet,
+    report_row,
+    bail_col,
+    prison_number_col,
+    file_no_col,
+    used_file_numbers,
+):
+    """Extracts data for bail refused cases and writes to report sheet."""
 
-    Args:
-        workbook (openpyxl.Workbook): The openpyxl workbook object.
+    bail_criteria = ("Bail Refused", "JC Bail Refused")
 
-    Returns:
-        list: A list containing the names of all sheets in the workbook.
-    """
-    return workbook.sheetnames
+    for row in data_rows:
+        cells = [cell.value for cell in row]
+        # print(cells[bail_col - 17])
+        # exit()
+        if (
+            cells[bail_col - 17] in bail_criteria
+            and cells[prison_number_col - 1]
+            and cells[bail_col - 17] not in used_file_numbers
+        ):
+            used_file_numbers.add(cells[file_no_col - 1])
+            for i in range(len(cells)):
+                report_sheet.cell(row=report_row, column=i + 1).value = cells[i]
+            report_row += 1
 
 
-excel_file = "Law Clients.xlsm"
+def get_column_index(worksheet, header_row, header_text):
+    """Gets the column index of a header in a worksheet."""
 
-generate_bail_refused_report(excel_file)
+    for cell in worksheet.iter_rows(min_row=header_row):
+        for col, value in enumerate(cell, 1):
+            if value == header_text:
+                return col
+    return 0  # Return 0 if header not found
+
+
+def get_stage_column_index(worksheet, header):
+    """Gets the column index of a header in a worksheet."""
+
+    for col, value in enumerate(worksheet.iter_rows(min_row=1), 1):
+        if header in value:
+            return col
+    return 0
+
+
+def generate_empty_counsel_report(filepath):
+    """Generates a report of rows with empty counsel names in the Crown Court sheet."""
+
+    workbook = openpyxl.load_workbook(filepath)
+
+    # Get references to worksheets
+    crown_court_sheet = workbook["Crown Court Merge"]
+    report_sheet_name = "Empty Counsel Report"
+
+    report_sheet = create_sheet(workbook, report_sheet_name)
+
+    # Define counsel column index (assuming headers are in the first row)
+    counsel_col = get_column_index(crown_court_sheet, 1, "Name of Counsel")
+
+    # Copy headers from Crown Court sheet to report sheet
+    for i in range(1, crown_court_sheet.max_column + 1):
+        report_sheet.cell(row=1, column=i).value = crown_court_sheet.cell(
+            row=1, column=i
+        ).value
+
+    # Initialize report row
+    report_row = 2
+    # Extract data from Crown Court sheet with empty counsel names
+    extract_data_for_empty_counsel(
+        crown_court_sheet.iter_rows(min_row=2), report_sheet, report_row, counsel_col
+    )
+
+    # Save the workbook
+    workbook.save(filepath)
+
+    print("Empty counsel report generated successfully!")
+
+
+def extract_data_for_empty_counsel(data_rows, report_sheet, report_row, counsel_col):
+    """Extracts rows with empty counsel names and writes them to the report sheet."""
+
+    for row in data_rows:
+        cells = [cell.value for cell in row]
+        if not cells[counsel_col - 1]:
+            for i in range(len(cells)):
+                report_sheet.cell(row=report_row, column=i + 1).value = cells[i]
+            report_row += 1
+
+
+def generate_non_zero_balance_report(filepath):
+    """Generates a report of rows with non-zero balance in the Road Traffic sheet."""
+
+    workbook = openpyxl.load_workbook(filepath)
+
+    # Get references to worksheets
+    road_traffic_sheet = workbook["Road Traffic"]
+    report_sheet_name = "Non-Zero Balance Report"
+
+    report_sheet = create_sheet(workbook, report_sheet_name)
+
+    # Define balance column index (assuming headers are in the first row)
+    balance_col = get_column_index(road_traffic_sheet, 1, "Balance")
+
+    # Copy headers from Road Traffic sheet to report sheet
+    for i in range(1, road_traffic_sheet.max_column + 1):
+        report_sheet.cell(row=1, column=i).value = road_traffic_sheet.cell(
+            row=1, column=i
+        ).value
+
+    # Initialize report row
+    report_row = 2
+
+    # Extract data from Road Traffic sheet with non-zero balance
+    extract_data_for_non_zero_balance(
+        road_traffic_sheet.iter_rows(min_row=2), report_sheet, report_row, balance_col
+    )
+
+    # Save the workbook
+    workbook.save(filepath)
+
+    print("Non-zero balance report generated successfully!")
+
+
+def extract_data_for_non_zero_balance(data_rows, report_sheet, report_row, balance_col):
+    """Extracts rows with non-zero balance and writes them to the report sheet."""
+
+    for row in data_rows:
+        cells = [cell.value for cell in row]
+        # print(cells[balance_col - 2])
+        # print(cells)
+        if cells[balance_col - 2] is not None and cells[balance_col - 2] != 0:
+            for i in range(len(cells)):
+                report_sheet.cell(row=report_row, column=i + 1).value = cells[i]
+            report_row += 1
+
+
+def generate_stage_reports(filepath):
+    """Generates stage reports for the current month from the Crown Court Merge sheet."""
+
+    workbook = openpyxl.load_workbook(filepath)
+    crown_court_sheet = workbook["Crown Court Merge"]
+    current_month = datetime.today().month
+
+    # Generate reports for each stage
+    stages = ["Stage 1", "Stage 2", "Stage 3", "Stage 4"]
+    for stage in stages:
+        generate_stage_report(workbook, crown_court_sheet, stage, current_month)
+
+    workbook.save(filepath)
+    print("Stage reports generated successfully!")
+
+
+def generate_stage_report(workbook, ws, stage, current_month):
+    """Generates a report for a specific stage and month."""
+
+    report_sheet_name = stage + " Report"
+
+    report_sheet = create_sheet(workbook, report_sheet_name)
+
+    stage_col = get_stage_column_index(ws, stage)
+
+    # Copy headers
+    for i in range(1, ws.max_column + 1):
+        report_sheet.cell(row=1, column=i).value = ws.cell(row=1, column=i).value
+
+    report_row = 2
+
+    # Filter and extract data
+    for cell in ws.iter_cols(min_row=2, min_col=stage_col, max_col=stage_col):
+        for row_cell in cell:
+            if (
+                isinstance(row_cell.value, datetime)
+                and row_cell.value.month == current_month
+            ):
+                extract_data_for_stage_report(
+                    row_cell.row, ws, report_sheet, report_row
+                )
+
+    if report_row == 2:
+        print(f"No data found for {stage}")
+
+
+def extract_data_for_stage_report(row_num, ws, report_sheet, report_row):
+    """Copies a row of data to the report sheet."""
+
+    for i in range(1, ws.max_column + 1):
+        report_sheet.cell(row=report_row, column=i).value = ws.cell(
+            row=row_num, column=i
+        ).value
+    report_row += 1
+
+
+if __name__ == "__main__":
+    filepath = "../Law Clients.xlsm"
+    # +---------------------+
+    # |  Checked Functions  |
+    # +---------------------+
+    generate_monthly_cases_report(filepath)
+    generate_weekly_cases_report(filepath)
+    generate_legal_aid_report(filepath)
+    generate_non_zero_balance_report(filepath)
+    generate_empty_counsel_report(filepath)
+    generate_stage_reports(filepath)
+
+    # +---------------------------+
+    # |   not sure it will work   |
+    # +---------------------------+
+    generate_bail_refused_report(filepath)
