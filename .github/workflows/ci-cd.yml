@@ -10,7 +10,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        # os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [macos-latest]
     steps:
       - uses: actions/checkout@v3
 
@@ -41,9 +42,9 @@ jobs:
       #     sudo apt-get update
       #     sudo apt-get install -y qt5-default
 
-      - name: Install Qt (macOS) - Using Homebrew (Optional)
-        if: runner.os == 'macos'
-        run: brew install qt
+      # - name: Install Qt (macOS) - Using Homebrew (Optional)
+      #   if: runner.os == 'macos'
+      #   run: brew install qt
 
       # - name: Install Qt (Windows) - Manual or Package Manager
       #   if: runner.os == 'windows-latest'
