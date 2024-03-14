@@ -6,7 +6,12 @@ from pprint import pprint
 # from pprint import pprint
 
 
-def get_column_val(data_worksheet, start_row, column_num):
+def get_column_val(
+    column_num,
+    workbook,
+    data_worksheet_name="Opening File",
+    start_row=17,
+):
     """
     get value of column that are not None and save them in array
     output:
@@ -17,6 +22,7 @@ def get_column_val(data_worksheet, start_row, column_num):
 
     """
 
+    data_worksheet = workbook[data_worksheet_name]
     values = []
     for index, row in enumerate(
         data_worksheet.iter_rows(min_row=start_row, values_only=True)
@@ -53,6 +59,7 @@ def first_sh_rows_with_numbers(filepath):
 
 
 def create_sheet(workbook, sheet_name):
+    """create sheet and return it"""
     try:
         report_worksheet = workbook[sheet_name]
 
@@ -62,6 +69,7 @@ def create_sheet(workbook, sheet_name):
                 cell.value = None
     except:
         report_worksheet = workbook.create_sheet(sheet_name)
+    return report_worksheet
 
 
 def write_header(
@@ -125,13 +133,13 @@ def generate_monthly_cases_report(filepath):
     report_worksheet_name = "Upcoming Cases this Month"
 
     # create report sheet
-    create_sheet(workbook, report_worksheet_name)
+    report_worksheet = create_sheet(workbook, report_worksheet_name)
 
     current_month_start = datetime.now().replace(day=1)
     current_month_end = (current_month_start + relativedelta(months=+1)) - timedelta(
         days=1
     )
-    _, date_opened_vals = get_column_val(data_worksheet, 17, 7)
+    _, date_opened_vals = get_column_val(7, workbook)
     filtered_data = [
         (index + 18, cell)  # add 17 for 17 row was skip
         for index, cell in date_opened_vals
@@ -159,7 +167,7 @@ def generate_weekly_cases_report(filepath):
     report_worksheet_name = "Upcoming Cases this Week"
 
     # create report sheet
-    create_sheet(workbook, report_worksheet_name)
+    report_worksheet = create_sheet(workbook, report_worksheet_name)
 
     # Calculate start and end dates for the current week
     today = datetime.today()
@@ -168,7 +176,7 @@ def generate_weekly_cases_report(filepath):
     end_date = start_date + timedelta(days=6)  # Sunday of the current week
 
     # Filter data for the current week
-    _, date_opened_vals = get_column_val(data_worksheet, 17, 7)
+    _, date_opened_vals = get_column_val(7, workbook)
     filtered_data = [
         (index + 18, cell)  # add 17 for 17 row was skip
         for index, cell in date_opened_vals
