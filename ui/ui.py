@@ -27,6 +27,7 @@ from PySide6.QtWidgets import (
 )
 
 from PySide6.QtGui import QPixmap, QFont
+from PySide6.QtCore import Qt
 
 from ui.ui_form import Ui_MainWindow
 from update_doc_file import gen_docs
@@ -56,6 +57,53 @@ class MainWindow(QMainWindow):
         self.ui.exportbutton.clicked.connect(gen_docs)
         self.ui.newentrybutton.clicked.connect(self.ask_for_new_entry)
         self.ui.operationsbutton.clicked.connect(self.show_operations_dialog)
+        
+        self.ui.exitbutton.setCursor(Qt.PointingHandCursor)
+        self.ui.importbutton.setCursor(Qt.PointingHandCursor)
+        self.ui.exportbutton.setCursor(Qt.PointingHandCursor)
+        self.ui.newentrybutton.setCursor(Qt.PointingHandCursor)
+        self.ui.operationsbutton.setCursor(Qt.PointingHandCursor)
+        
+        
+        self.setStyleSheet("""
+            QMainWindow {
+                background-color: #333;
+            }
+
+            QTableWidget {
+                gridline-color: #999;
+                font-size: 14px;
+            }
+
+            QTableWidget QHeaderView::section {
+                background-color: #666;
+                color: #fff;
+                padding: 5px;
+                border: 1px solid #999;
+            }
+
+            QTableWidget QTableCornerButton::section {
+                background-color: #666;
+                border: 1px solid #999;
+            }
+            
+            QPushButton {
+                background-color: #007cff; /* Green */
+                border: none;
+                color: white;
+                padding: 15px 32px;
+                text-align: center;
+                text-decoration: none;
+                font-size: 16px;
+                margin: 4px 2px;
+            }
+
+            QPushButton:hover {
+                background-color: #3094fd;
+            }
+        """)
+        
+        
         # clear existing tabs
         self.ui.tabWidget.clear()
 
