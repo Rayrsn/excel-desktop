@@ -304,19 +304,36 @@ class NewEntryDialog(QDialog):
         self.setWindowTitle("New Entry")
         
         self.setStyleSheet("""
+            QDialog {
+                background-color: #f0f0f0;
+            }
+
+            QLabel {
+                font-size: 14px;
+            }
+
+            QLineEdit, QComboBox, QDateEdit {
+                background-color: #fff;
+                border: 1px solid #999;
+                padding: 5px;
+            }
+
             QPushButton {
-                background-color: #007cff; /* Green */
+                background-color: #007BFF;
+                color: #fff;
                 border: none;
-                color: white;
-                padding: 15px 32px;
-                text-align: center;
-                text-decoration: none;
-                font-size: 16px;
-                margin: 4px 2px;
+                padding: 5px 10px;
+                margin: 10px;
             }
 
             QPushButton:hover {
-                background-color: #3094fd;
+                background-color: #0056b3;
+            }
+            
+            QComboBox:!editable, QComboBox::drop-down:editable {
+                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                            stop: 0 #E1E1E1, stop: 0.4 #DDDDDD,
+                                            stop: 0.5 #D8D8D8, stop: 1.0 #D3D3D3);
             }
         """)
         
@@ -349,7 +366,7 @@ class NewEntryDialog(QDialog):
 
         self.button = QPushButton("Submit", self)
         # change size of button
-        self.button.setMinimumSize(100, 40)
+        self.button.setMinimumSize(100, 60)
         self.button.clicked.connect(self.accept)
         self.layout.addWidget(self.button)
 
