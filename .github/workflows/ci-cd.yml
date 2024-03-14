@@ -14,56 +14,63 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install dependencies (Linux)
-        if: runner.os == 'Linux'
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          python-version: 3.12.2 # Replace with your desired Python version
-          channels: conda-forge
-          auto-activate-base: false
+      # - name: Install dependencies (Linux)
+      #   if: runner.os == 'Linux'
+      #   uses: conda-incubator/setup-miniconda@v2
+      #   with:
+      #     python-version: "3.12.2" # Specify Python 3.12.2 explicitly
+      #     channels: conda-forge
+      #     auto-activate-base: false
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macos'
         run: |
           brew update
-          brew install python@3.12  # Replace with your desired Python version
+          brew install python@3.12  # Assuming Homebrew has Python 3.12 available
 
-      - name: Install dependencies (Windows)
-        if: runner.os == 'windows-latest'
-        uses: microsoft/setup-python@v2
-        with:
-          version: '3.12.2' # Replace with your desired Python version
-          architecture: x64
+      # - name: Install dependencies (Windows)
+      #   if: runner.os == 'windows-latest'
+      #   uses: microsoft/setup-python@v2
+      #   with:
+      #     version: "3.12.2" # Specify Python 3.12.2 explicitly
+      #     architecture: x64
 
-      - name: Install Qt (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y qt5-default
+      # - name: Install Qt (Linux)
+      #   if: runner.os == 'Linux'
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y qt5-default
 
       - name: Install Qt (macOS) - Using Homebrew (Optional)
         if: runner.os == 'macos'
         run: brew install qt
 
       # - name: Install Qt (Windows) - Manual or Package Manager
-        # if: runner.os == 'windows-latest'
-        # Provide instructions or script for manual Qt installation on Windows
+      #   if: runner.os == 'windows-latest'
+      #   # Provide instructions or script for manual Qt installation on Windows
 
       - name: Install application dependencies
         run: pip install -r requirements.txt
 
-      - name: Build the application
-        run: |
-          qmake -project
-          make
+      # - name: Build the application
+      #   run: |
+      #     qmake -project
+      #     make
 
-      - name: Run tests (if applicable)
+      - name: Install PyInstaller
+        run: pip install pyinstaller
+
+      - name: Build executable with PyInstaller
         run: |
-          # Add commands to run your unit tests or other tests here
-          python tests.py  # Example test script
+          pyinstaller --onefile build/your_app.py
+
+      # - name: Run tests (if applicable)
+      #   run: |
+      #     # Add commands to run your unit tests or other tests here
+      #     python tests.py  # Example test script
 
       - name: Upload artifacts (optional)
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ runner.os }}-build
-          path: build/ # Replace with your build output directory
+          name: ${{ runner.os }}-executable
+          path: dist/ # Replace with the directory containing your executable
