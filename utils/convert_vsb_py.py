@@ -198,90 +198,74 @@ def generate_weekly_cases_report(filepath):
 def generate_legal_aid_report(filepath):
     """Generates a legal aid report from an Excel workbook."""
 
+    def calc_report_vars(legal_aid_col_list):
+        vals = {
+            "Submitted": 0,
+            "Refused": 0,
+            "Date Stamped": 0,
+            "Approved": 0,
+            "Appealed": 0,
+        }
+        for index, cell in legal_aid_col_list:
+            if cell and cell in vals:
+                vals[cell] += 1
+        return vals
+
     workbook = openpyxl.load_workbook(filepath)
 
     # Get references to worksheets
     data_worksheet = workbook["Opening File"]
     report_worksheet_name = "Legal Aid Report"
-    report_worksheet = workbook.create_sheet(report_worksheet_name)
-    # report_worksheet = workbook.get_sheet_by_name(report_worksheet_name)
-    # if not report_worksheet:
-    #     report_worksheet = workbook.create_sheet(report_worksheet_name)
-    # else:
-    for row in report_worksheet.iter_rows():
-        for cell in row:
-            cell.value = None  # Clear existing data
+
+    # create report sheet
+    report_worksheet = create_sheet(workbook, report_worksheet_name)
 
     # Get references to tables
-    master_data_table = data_worksheet["MasterData"]
-
-    # Find the legal aid column index
-    legal_aid_col = None
-    for col in master_data_table.iter_cols(min_row=1):
-        if col[0].value == "Legal Aid":
-            legal_aid_col = col[0].column
-
-    # Check if legal aid column exists
-    if not legal_aid_col:
+    try:
+        header, legal_aid_col = get_column_val(36, workbook)
+    except:
+        # Check if legal aid column exists
         print("Error: Legal Aid column not found in MasterData table!")
         return
 
-    # Find the last row of data
-    last_row = master_data_table.max_row
+    cell_vals = calc_report_vars(legal_aid_col)
 
-    # Initialize counters
-    submitted_count = 0
-    refused_count = 0
-    date_stamped_count = 0
-    approved_count = 0
-    appealed_count = 0
+    header = [
+        "Legal Aid Category",
+        "Submitted",
+        "Refused",
+        "Date Stamped",
+        "Approved",
+        "Appealed",
+        "Total Number of Clients",
+    ]
 
-    # Loop through the data and count clients in each category
-    for row in master_data_table.iter_rows(min_row=2):
-        if row[legal_aid_col - 1].value:  # Check if cell is not empty
-            legal_aid_status = row[legal_aid_col - 1].value
-            if legal_aid_status == "Submitted":
-                submitted_count += 1
-            elif legal_aid_status == "Refused":
-                refused_count += 1
-            elif legal_aid_status == "Date Stamped":
-                date_stamped_count += 1
-            elif legal_aid_status == "Approved":
-                approved_count += 1
-            elif legal_aid_status == "Appealed":
-                appealed_count += 1
+    client_count = 0
+    for _, val in cell_vals.items():
+        client_count += val
+
+    result_row = [
+        [
+            (0, "Number of Clients"),
+            (1, cell_vals["Submitted"]),
+            (2, cell_vals["Refused"]),
+            (3, cell_vals["Date Stamped"]),
+            (4, cell_vals["Approved"]),
+            (5, cell_vals["Appealed"]),
+            (6, client_count),
+        ]
+    ]
 
     # Write data to report worksheet
-    report_worksheet["A1"] = "Legal Aid Category"
-    report_worksheet["B1"] = "Number of Clients"
-    report_worksheet["A2"] = "Submitted"
-    report_worksheet["B2"] = submitted_count
-    report_worksheet["A3"] = "Refused"
-    report_worksheet["B3"] = refused_count
-    report_worksheet["A4"] = "Date Stamped"
-    report_worksheet["B4"] = date_stamped_count
-    report_worksheet["A5"] = "Approved"
-    report_worksheet["B5"] = approved_count
-    report_worksheet["A6"] = "Appealed"
-    report_worksheet["B6"] = appealed_count
-
-    # Calculate and write total client count
-    client_count = (
-        submitted_count
-        + refused_count
-        + date_stamped_count
-        + approved_count
-        + appealed_count
+    write_header(
+        workbook=workbook,
+        target_sh_name=report_worksheet_name,
+        source_sh="",
+        start_header_row=2,
+        header_list=header,
     )
-    report_worksheet["A8"] = "Total Number of Clients"
-    report_worksheet["B8"] = client_count
 
-    # Create a table from the report data
-    report_table = openpyxl.worksheet.table.Table(
-        displayName="Legal Aid Report", ref="A1:B8"
-    )
-    report_table.table_style = "TableStyleLight9"  # Optional table style
-    report_worksheet.add_table(report_table)
+    write_rows(filepath=filepath, target_sh=report_worksheet, rows=result_row)
 
     # Save the workbook
     workbook.save(filepath)
@@ -596,8 +580,8 @@ if __name__ == "__main__":
     # generate_non_zero_balance_report(filepath)
     # generate_empty_counsel_report(filepath)
     # generate_bail_refused_report(filepath)
-    # generate_legal_aid_report(filepath)
+    generate_legal_aid_report(filepath)
 
-    generate_weekly_cases_report(filepath)
+    # generate_weekly_cases_report(filepath)
     # generate_monthly_cases_report(filepath)
     # generate_stage_reports(filepath)
