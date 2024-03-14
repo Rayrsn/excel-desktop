@@ -281,15 +281,10 @@ def generate_bail_refused_report(filepath):
     # Get references to worksheets
     magistrates_sheet = workbook["Magistrates Merge"]
     crown_court_sheet = workbook["Crown Court Merge"]
+
+    # Create report sheet
     report_sheet_name = "Clients in Prison Report"
-    report_sheet = workbook.create_sheet(report_sheet_name)
-    # report_sheet = workbook.get_sheet_by_name(report_sheet_name)
-    # if not report_sheet:
-    # report_sheet = workbook.create_sheet(report_sheet_name)
-    # else:
-    for row in report_sheet.iter_rows():
-        for cell in row:
-            cell.value = None  # Clear existing data
+    report_sheet = create_sheet(workbook, report_sheet_name)
 
     # Define column indices (assuming headers are in the first row)
     bail_col = get_column_index(magistrates_sheet, 1, "Bail")
@@ -328,14 +323,7 @@ def generate_bail_refused_report(filepath):
         used_file_numbers,
     )
 
-    # Create a table from the report data
-    report_table = openpyxl.worksheet.table.Table(
-        displayName="Clients in Prison Report",
-        ref="A1:" + report_sheet.cells(report_sheet.max_row, 1).end(xlUp).row,
-    )
-    report_table.table_style = "TableStyleLight9"  # Optional table style
-    report_sheet.add_table(report_table)
-
+    # exit()
     # Save the workbook
     workbook.save(filepath)
 
@@ -357,10 +345,12 @@ def extract_data_for_bail_refused(
 
     for row in data_rows:
         cells = [cell.value for cell in row]
+        # print(cells[bail_col - 17])
+        # exit()
         if (
-            cells[bail_col - 1] in bail_criteria
+            cells[bail_col - 17] in bail_criteria
             and cells[prison_number_col - 1]
-            and cells[file_no_col - 1] not in used_file_numbers
+            and cells[bail_col - 17] not in used_file_numbers
         ):
             used_file_numbers.add(cells[file_no_col - 1])
             for i in range(len(cells)):
@@ -535,16 +525,19 @@ def extract_data_for_stage_report(row_num, ws, report_sheet, report_row):
 
 
 if __name__ == "__main__":
-    filepath = "../Law Clients_test_month_sheet.sh.xlsx"
-
-    # generate_bail_refused_report(filepath)
-
+    filepath = "../Law Clients.xlsm"
     # +---------------------+
     # |  Checked Functions  |
     # +---------------------+
-    # generate_stage_reports(filepath)
-    # generate_non_zero_balance_report(filepath)
-    # generate_legal_aid_report(filepath)
-    # generate_empty_counsel_report(filepath)
-    # generate_weekly_cases_report(filepath)
-    # generate_monthly_cases_report(filepath)
+    generate_monthly_cases_report(filepath)
+    generate_weekly_cases_report(filepath)
+    generate_legal_aid_report(filepath)
+    generate_non_zero_balance_report(filepath)
+    generate_empty_counsel_report(filepath)
+    generate_stage_reports(filepath)
+
+    # +---------------------------+
+    # |  not sure it will work   |
+    # +---------------------------+
+    generate_bail_refused_report(filepath)
+
