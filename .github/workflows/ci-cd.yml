@@ -56,7 +56,7 @@ jobs:
 
       - name: Build executable with PyInstaller
         run: |
-          pyinstaller --onefile --windowed main.py
+          pyinstaller --onefile --windowed --icon=bkp_logo.jpg main.py
 
       - name: Upload artifacts (optional)
         uses: actions/upload-artifact@v3
