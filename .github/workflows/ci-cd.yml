@@ -10,18 +10,17 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        # os: [ubuntu-latest, macos-latest, windows-latest]
-        os: [macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v3
 
-      # - name: Install dependencies (Linux)
-      #   if: runner.os == 'Linux'
-      #   uses: conda-incubator/setup-miniconda@v2
-      #   with:
-      #     python-version: "3.12.2" # Specify Python 3.12.2 explicitly
-      #     channels: conda-forge
-      #     auto-activate-base: false
+      - name: Install dependencies (Linux)
+        if: runner.os == 'Linux'
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version: "3.12.2" # Specify Python 3.12.2 explicitly
+          channels: conda-forge
+          auto-activate-base: false
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macos'
@@ -29,34 +28,28 @@ jobs:
           brew update
           # brew install python3  # Assuming Homebrew has Python 3.12 available
 
-      # - name: Install dependencies (Windows)
-      #   if: runner.os == 'windows-latest'
-      #   uses: microsoft/setup-python@v2
-      #   with:
-      #     version: "3.12.2" # Specify Python 3.12.2 explicitly
-      #     architecture: x64
+      - name: Install dependencies (Windows)
+        if: runner.os == 'windows-latest'
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.12.2" # Specify Python 3.12.2 explicitly
 
-      # - name: Install Qt (Linux)
-      #   if: runner.os == 'Linux'
-      #   run: |
-      #     sudo apt-get update
-      #     sudo apt-get install -y qt5-default
+      - name: Install Qt (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qt5-default
 
-      # - name: Install Qt (macOS) - Using Homebrew (Optional)
-      #   if: runner.os == 'macos'
-      #   run: brew install qt
+      - name: Install Qt (macOS) - Using Homebrew (Optional)
+        if: runner.os == 'macos'
+        run: brew install qt
 
-      # - name: Install Qt (Windows) - Manual or Package Manager
-      #   if: runner.os == 'windows-latest'
-      #   # Provide instructions or script for manual Qt installation on Windows
+      - name: Install Qt (Windows) - Manual or Package Manager
+        if: runner.os == 'windows-latest'
+        run: choco install qt
 
       - name: Install application dependencies
         run: pip install -r requirements.txt
-
-      # - name: Build the application
-      #   run: |
-      #     qmake -project
-      #     make
 
       - name: Install PyInstaller
         run: pip install pyinstaller
@@ -64,11 +57,6 @@ jobs:
       - name: Build executable with PyInstaller
         run: |
           pyinstaller --onefile --windowed main.py
-
-      # - name: Run tests (if applicable)
-      #   run: |
-      #     # Add commands to run your unit tests or other tests here
-      #     python tests.py  # Example test script
 
       - name: Upload artifacts (optional)
         uses: actions/upload-artifact@v3
