@@ -18,7 +18,7 @@ jobs:
         if: runner.os == 'Linux'
         uses: conda-incubator/setup-miniconda@v2
         with:
-          python-version: "3.12.2" # Specify Python 3.12.2 explicitly
+          python-version: 3
           channels: conda-forge
           auto-activate-base: false
 
@@ -32,21 +32,21 @@ jobs:
         if: runner.os == 'windows-latest'
         uses: actions/setup-python@v2
         with:
-          python-version: "3.12.2" # Specify Python 3.12.2 explicitly
+          python-version: 3
 
       - name: Install Qt (Linux)
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y qt5-default
+          sudo apt-get install -y python3
 
-      - name: Install Qt (macOS) - Using Homebrew (Optional)
-        if: runner.os == 'macos'
-        run: brew install qt
+      # - name: Install Qt (macOS) - Using Homebrew (Optional)
+      #   if: runner.os == 'macos'
+      #   run: brew install qt
 
-      - name: Install Qt (Windows) - Manual or Package Manager
-        if: runner.os == 'windows-latest'
-        run: choco install qt
+      # - name: Install Qt (Windows) - Manual or Package Manager
+      #   if: runner.os == 'windows-latest'
+      #   run: choco install qt
 
       - name: Install application dependencies
         run: pip install -r requirements.txt
