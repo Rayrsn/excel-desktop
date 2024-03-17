@@ -56,10 +56,9 @@ def process_excel_queries(filepath, sheet_name, queries):
         pandas.DataFrame: A pandas DataFrame containing the processed data, or None if errors occur.
     """
 
+    # Read data from the sheet
+    df = pd.read_excel(filepath, sheet_name=sheet_name)
     try:
-        # Read data from the sheet
-        df = pd.read_excel(filepath, sheet_name=sheet_name)
-
         # Process queries sequentially
         for query in queries:
             operation = query["operation"].lower()
@@ -67,20 +66,21 @@ def process_excel_queries(filepath, sheet_name, queries):
 
             if operation == "read":
                 # Read data if not already read
-                if df is None:
-                    df = pd.read_excel(filepath, sheet_name=sheet_name)
-                else:
-                    print(
-                        "Warning: Data already read, ignoring duplicate 'read' query."
+                sh_name = arguments["sheet_name"]
+                # if df is None:
+                if sh_name == "Opening File":
+                    df = pd.read_excel(
+                        filepath,
+                        sheet_name=sh_name,
+                        nrows=None,
+                        skiprows=16,
                     )
+                else:
+                    df = pd.read_excel(filepath, sheet_name=sheet_name)
             elif operation == "change_type":
                 # Set data types for specific columns
                 for col_name, col_type in arguments:
                     df[col_name] = df[col_name].astype(col_type)
-                    # df[col_name] = df[col_name].astype(col_type, errors='coerce')
-                    # df[col_name] = df[col_name].replace(
-                    #     to_replace="invalid_value", method="replace", value=np.nan
-                    # )
 
             elif operation == "remove_columns":
                 # for col in arguments:
@@ -106,7 +106,10 @@ filepath = "../Law_v3.xlsm"
 sheet_name = "Magistrates"
 
 queries = [
-    {"operation": "read"},  # Read data (already handled)
+    {
+        "operation": "read",
+        "arguments": {"sheet_name": "Opening File"},
+    },  # Read data (already handled)
     {
         "operation": "change_type",
         "arguments": [
@@ -146,18 +149,18 @@ queries = [
             ("Legal Aid", object),
         ],
     },
-    {
-        "operation": "remove_columns",
-        "arguments": "CRIME",  # Adjust columns to remove
-    },
-    {
-        "operation": "filter_rows",
-        "arguments": ["Court == 'Magistrates'"],  # Filter condition
-    },
-    {
-        "operation": "remove_columns",
-        "arguments": ["Court"],  # Optional: Remove "Court" after filtering
-    },
+    # {
+    #     "operation": "remove_columns",
+    #     "arguments": "CRIME",  # Adjust columns to remove
+    # },
+    # {
+    #     "operation": "filter_rows",
+    #     "arguments": ["Court == 'Magistrates'"],  # Filter condition
+    # },
+    # {
+    #     "operation": "remove_columns",
+    #     "arguments": ["Court"],  # Optional: Remove "Court" after filtering
+    # },
 ]
 
 processed_data = process_excel_queries(filepath, sheet_name, queries)
@@ -165,12 +168,16 @@ processed_data = process_excel_queries(filepath, sheet_name, queries)
 if processed_data is not None:
     print(processed_data)  # Print the processed DataFrame
 else:
-    pass
-    # print("Error: Processing failed. See error messages for details.")
+    print("Error: Processing failed. See error messages for details.")
 
 
 if __name__ == "__main__":
     pass
+    # +---------------------------+
+    # |  get data of first sheet  |
+    # +---------------------------+
+    # df = pd.read_excel(filepath, nrows=None, skiprows=16)
+
     # excel_file = "../Law_v3.xlsm"
     # q_g1_magistrates(excel_file)
 
