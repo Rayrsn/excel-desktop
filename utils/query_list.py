@@ -240,6 +240,10 @@ queries = [
         "operation": "filter_rows",
         "arguments": ["Court == 'Road Traffic'"],  # Filter condition
     },
+    {
+        "operation": "remove_columns",
+        "arguments": ["Court"],
+    },
     # +------------------+
     # |  Police Station  |
     # +------------------+
@@ -287,7 +291,7 @@ queries = [
         ],
     },
     {
-        "operation": "remove_columns",
+        "operation": "select_columns",
         "arguments": [
             "Office",
             "Matter Type",
@@ -315,7 +319,7 @@ queries = [
         "arguments": ["Court == 'Police Station'"],  # Filter condition
     },
     {
-        "operation": "remove_columns",
+        "operation": "select_columns",
         "arguments": [
             "Office",
             "Matter Type",
@@ -377,7 +381,7 @@ queries = [
     # +--------+
     {
         "operation": "read",
-        "arguments": {"sheet_name": "Opening File"},
+        "arguments": {"sheet_name": "Police_Station"},
     },  # Read data (already handled)
     {
         "operation": "change_type",
@@ -433,7 +437,7 @@ queries = [
     # +-------------------------+
     {
         "operation": "read",
-        "arguments": {"sheet_name": "Opening File"},
+        "arguments": {"sheet_name": "Magistrates_Merge"},
     },  # Read data (already handled)
     {
         "operation": "change_type",
@@ -467,7 +471,7 @@ queries = [
         ],
     },
     {
-        "operation": "remove_columns",
+        "operation": "select_columns",
         "arguments": [
             "Office",
             "Matter Type",
@@ -482,12 +486,13 @@ queries = [
             "Appeal",
         ],
     },
+    # BUG check if condition is yes
     {
         "operation": "filter_rows",
         "arguments": "Appeal = 'Yes'",  # Filter condition
     },
     {
-        "operation": "remove_columns",
+        "operation": "select_columns",
         "arguments": [
             "Office",
             "Matter Type",
@@ -506,7 +511,7 @@ queries = [
     # +-------------------------+
     {
         "operation": "read",
-        "arguments": {"sheet_name": "Opening File"},
+        "arguments": {"sheet_name": "Crown_Court_Merge"},
     },  # Read data (already handled)
     {
         "operation": "change_type",
@@ -543,7 +548,7 @@ queries = [
         ],
     },
     {
-        "operation": "remove_columns",
+        "operation": "select_columns",
         "arguments": [
             "Office",
             "Matter Type",
@@ -563,7 +568,7 @@ queries = [
         "arguments": "Appeal = 'Yes'",  # Filter condition
     },
     {
-        "operation": "remove_columns",
+        "operation": "select_columns",
         "arguments": [
             "Office",
             "Matter Type",
@@ -582,7 +587,7 @@ queries = [
     # +--------------------------+
     {
         "operation": "read",
-        "arguments": {"sheet_name": "Opening File"},
+        "arguments": {"sheet_name": "Road_Traffic"},
     },  # Read data (already handled)
     {
         "operation": "change_type",
@@ -609,7 +614,7 @@ queries = [
         ],
     },
     {
-        "operation": "remove_columns",
+        "operation": "select_columns",
         "arguments": [
             "Office",
             "Matter Type",
@@ -629,7 +634,7 @@ queries = [
         "arguments": "Appeal = 'Yes'",  # Filter condition
     },
     {
-        "operation": "remove_columns",
+        "operation": "select_columns",
         "arguments": [
             "Office",
             "Matter Type",
@@ -648,7 +653,7 @@ queries = [
     # +--------------------------------+
     {
         "operation": "read",
-        "arguments": {"sheet_name": "Opening File"},
+        "arguments": {"sheet_name": "Police_Station"},
     },  # Read data (already handled)
     {
         "operation": "change_type",
@@ -697,7 +702,7 @@ queries = [
         ],
     },
     {
-        "operation": "remove_columns",
+        "operation": "select_columns",
         "arguments": [
             "Office",
             "Matter Type",
@@ -717,7 +722,7 @@ queries = [
         "arguments": "Outcome = 'Charged'",  # Filter condition
     },
     {
-        "operation": "remove_columns",
+        "operation": "select_columns",
         "arguments": [
             "Office",
             "Matter Type",
@@ -736,7 +741,7 @@ queries = [
     # +--------------------------------+
     {
         "operation": "read",
-        "arguments": {"sheet_name": "Opening File"},
+        "arguments": {"sheet_name": "Magistrates_Merge"},
     },  # Read data (already handled)
     {
         "operation": "change_type",
@@ -770,7 +775,7 @@ queries = [
         ],
     },
     {
-        "operation": "remove_columns",
+        "operation": "select_columns",
         "arguments": [
             "Office",
             "Matter Type",
@@ -792,7 +797,7 @@ queries = [
         "arguments": "Type of Offence = 'Indictable'",  # Filter condition
     },
     {
-        "operation": "remove_columns",
+        "operation": "select_columns",
         "arguments": [
             "Office",
             "Matter Type",
@@ -812,7 +817,7 @@ queries = [
     # +--------------------------------+
     {
         "operation": "read",
-        "arguments": {"sheet_name": "Opening File"},
+        "arguments": {"sheet_name": "Magistrates_Merge"},
     },  # Read data (already handled)
     {
         "operation": "change_type",
@@ -846,7 +851,7 @@ queries = [
         ],
     },
     {
-        "operation": "remove_columns",
+        "operation": "select_columns",
         "arguments": [
             "Office",
             "Matter Type",
@@ -867,7 +872,7 @@ queries = [
         "arguments": "Type of Offence = 'Either Way'",  # Filter condition
     },
     {
-        "operation": "remove_columns",
+        "operation": "select_columns",
         "arguments": [
             "Office",
             "Matter Type",
