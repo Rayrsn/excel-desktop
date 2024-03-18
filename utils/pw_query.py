@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from query_list import queries
 
 
 # def remove_column_from_table(df, table_name, column_to_remove):
@@ -55,6 +56,7 @@ def process_excel_queries(filepath, sheet_name, queries):
     Returns:
         pandas.DataFrame: A pandas DataFrame containing the processed data, or None if errors occur.
     """
+    # NOTE : maybe for date column must date datetiem field
 
     # Read data from the sheet
     df = pd.read_excel(filepath, sheet_name=sheet_name)
@@ -81,10 +83,12 @@ def process_excel_queries(filepath, sheet_name, queries):
                 # Set data types for specific columns
                 for col_name, col_type in arguments:
                     df[col_name] = df[col_name].astype(col_type)
-
             elif operation == "remove_columns":
-                # for col in arguments:
                 df = df.drop(arguments, axis=1)
+
+            # NOTE: it must complete
+            elif operation == "combine_sheets":
+                pass
             elif operation == "filter_rows":
                 # Can handle multiple filter conditions (adjust logic as needed)
                 filter_condition = arguments[0]
@@ -92,7 +96,9 @@ def process_excel_queries(filepath, sheet_name, queries):
             else:
                 print(f"Warning: Unsupported operation '{operation}'.")
 
-        return df
+        # return df
+
+        df.to_excel(filepath, sheet_name="test_sh", index=False)
     except FileNotFoundError:
         print(f"Error: File '{filepath}' not found.")
         return None
@@ -102,73 +108,20 @@ def process_excel_queries(filepath, sheet_name, queries):
 
 
 # Example usage:
-filepath = "../Law_v3.xlsm"
+# filepath = "../Law_v3.xlsm"
+filepath = "../Law_Clients_v4.xlsm"
+
+
 sheet_name = "Magistrates"
+process_excel_queries(filepath, sheet_name, queries)
 
-queries = [
-    {
-        "operation": "read",
-        "arguments": {"sheet_name": "Opening File"},
-    },  # Read data (already handled)
-    {
-        "operation": "change_type",
-        "arguments": [
-            ("Sr No.", object),
-            ("Matter Type", str),
-            ("Email", object),
-            ("Previous Number", object),
-            ("CRIME", object),
-            ("File No.", object),
-            ("Date Opened", object),
-            ("Fee Earner", object),
-            ("Client's Surname", object),
-            ("Client's Forename(s)", object),
-            ("Client's Title", object),
-            ("Marital Status", object),
-            ("Letters to Home Address", object),
-            ("Address", object),
-            ("Postcode", object),
-            ("Postal Address (if Different)", object),
-            ("Postal Address Postcode", object),
-            ("Home Telephone", object),
-            ("Work Telephone", object),
-            ("Mobile Number", object),
-            ("Occupation", object),
-            ("Date of Birth", object),
-            ("Ethnicity", object),
-            ("Prison Number", object),
-            ("National Insurance Number", object),
-            ("3rd Party", object),
-            ("Initial", object),
-            ("Conflict", object),
-            ("Date", object),
-            ("Costs Information", str),
-            ("Cost Estimate", object),
-            ("Charge Basis", object),
-            ("Court", object),
-            ("Legal Aid", object),
-        ],
-    },
-    # {
-    #     "operation": "remove_columns",
-    #     "arguments": "CRIME",  # Adjust columns to remove
-    # },
-    # {
-    #     "operation": "filter_rows",
-    #     "arguments": ["Court == 'Magistrates'"],  # Filter condition
-    # },
-    # {
-    #     "operation": "remove_columns",
-    #     "arguments": ["Court"],  # Optional: Remove "Court" after filtering
-    # },
-]
 
-processed_data = process_excel_queries(filepath, sheet_name, queries)
+# processed_data = process_excel_queries(filepath, sheet_name, queries)
 
-if processed_data is not None:
-    print(processed_data)  # Print the processed DataFrame
-else:
-    print("Error: Processing failed. See error messages for details.")
+# if processed_data is not None:
+#     print(processed_data)  # Print the processed DataFrame
+# else:
+#     print("Error: Processing failed. See error messages for details.")
 
 
 if __name__ == "__main__":
