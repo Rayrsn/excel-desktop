@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-from query_list import queries
 
 
 # def remove_column_from_table(df, table_name, column_to_remove):
@@ -154,10 +153,14 @@ def main(filepath):
 
 
 if __name__ == "__main__":
+    from query_list import queries
+
     # filepath = "../Law_v3.xlsm"
     filepath = "../Law Clients.xlsm"
 
     main(filepath)
+else:
+    from utils.query_list import queries
 
     # +---------------------------+
     # |  get data of first sheet  |
