@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from query_list import queries
+from utils.query_list import queries
 
 
 # def remove_column_from_table(df, table_name, column_to_remove):
