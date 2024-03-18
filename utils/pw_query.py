@@ -42,6 +42,14 @@ from query_list import queries
 #     print(filtered_df)  # Print the filtered DataFrame
 
 
+def get_sheet(filepath, sheet_name):
+    if sheet_name == "Opening File":
+        return pd.read_excel(
+            filepath, index_col=0, nrows=None, skiprows=16, sheet_name=sheet_name
+        )
+    return pd.read_excel(filepath, index_col=0, nrows=None, sheet_name=sheet_name)
+
+
 def process_excel_queries(filepath, sheet_name, queries):
     """Processes a series of Excel query-like operations on a sheet.
 
@@ -86,9 +94,10 @@ def process_excel_queries(filepath, sheet_name, queries):
             elif operation == "remove_columns":
                 df = df.drop(arguments, axis=1)
 
-            # NOTE: it must complete
+            # BUG: it must write in to excel file
             elif operation == "combine_sheets":
-                pass
+                data_frames = [get_sheet(filepath, i) for i in arguments]
+                combined_df = pd.concat(data_frames, ignore_index=True)
             elif operation == "filter_rows":
                 # Can handle multiple filter conditions (adjust logic as needed)
                 filter_condition = arguments[0]
@@ -109,11 +118,10 @@ def process_excel_queries(filepath, sheet_name, queries):
 
 # Example usage:
 # filepath = "../Law_v3.xlsm"
-filepath = "../Law_Clients_v4.xlsm"
+filepath = "../Law Clients.xlsm"
 
 
-sheet_name = "Magistrates"
-process_excel_queries(filepath, sheet_name, queries)
+# process_excel_queries(filepath, sheet_name, queries)
 
 
 # processed_data = process_excel_queries(filepath, sheet_name, queries)
