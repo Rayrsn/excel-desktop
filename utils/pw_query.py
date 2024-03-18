@@ -93,24 +93,22 @@ def process_excel_queries(filepath, sheet_name, queries):
 
 
 def main(filepath):
-    # couter = 0
+    couter = 0
     for item in queries:
-        # couter += 1
-        # if couter == 1 or couter == 2:  # or couter == 3:
-        # continue
+        couter += 1
+        if couter == 1 or couter == 2:  # or couter == 3:
+            continue
         sheet_name = item["item_name"]
         queries_list = []
         for query in item["quires"]:
             queries_list.append(query)
 
-        x = get_sheet(filepath, sheet_name)
-        print(x)
-        df = process_excel_queries(filepath, sheet_name, queries_list)
-        print(df)
-        # print("--------------------")
         # x = get_sheet(filepath, sheet_name)
+        # print(x)
+        df = process_excel_queries(filepath, sheet_name, queries_list)
+        # print(df)
+        # print("--------------------")
         try:
-            # BUG: df dataframe is not currently write into sheet
             writer = pd.ExcelWriter(
                 filepath, engine="openpyxl", mode="a", if_sheet_exists="overlay"
             )  # Use 'openpyxl' for append mode
@@ -118,11 +116,10 @@ def main(filepath):
             writer.book.save(filepath)
             # x = get_sheet(filepath, sheet_name)
             # print(x)
-            # df.to_excel(filepath, sheet_name=sheet_name, index=False)
-            print(f"sheet {sheet_name} was saved")
+            # print(f"sheet {sheet_name} was saved")
         except Exception as e:
             print(e)
-        # break
+        break
 
 
 if __name__ == "__main__":
