@@ -50,7 +50,6 @@ def get_sheet(filepath, sheet_name):
     return pd.read_excel(filepath, index_col=0, nrows=None, sheet_name=sheet_name)
 
 
-# BUG: each item must write in one sheet (header 3 in markdown file)
 def process_excel_queries(filepath, sheet_name, queries):
     """Processes a series of Excel query-like operations on a sheet.
 
@@ -95,10 +94,9 @@ def process_excel_queries(filepath, sheet_name, queries):
             elif operation == "remove_columns":
                 df = df.drop(arguments, axis=1)
 
-            # BUG: it must write in to excel file
             elif operation == "combine_sheets":
                 data_frames = [get_sheet(filepath, i) for i in arguments]
-                combined_df = pd.concat(data_frames, ignore_index=True)
+                df = pd.concat(data_frames, ignore_index=True)
 
             # NOTE: must check all conditions
             # BUG: check have yes conditions and Variable that have space in it
@@ -107,16 +105,13 @@ def process_excel_queries(filepath, sheet_name, queries):
                 filter_condition = arguments[0]
                 df = df.query(filter_condition)
 
-            # BUG: it must write in to excel file
             elif operation == "select_columns":
-                combined_df = df[arguments]
+                df = df[arguments]
             else:
                 print(f"Warning: Unsupported operation '{operation}'.")
 
-        # return df
+        return df
 
-        # BUG : It must have Variable for sheet name
-        df.to_excel(filepath, sheet_name="test_sh", index=False)
     except FileNotFoundError:
         print(f"Error: File '{filepath}' not found.")
         return None
@@ -125,18 +120,44 @@ def process_excel_queries(filepath, sheet_name, queries):
         return None
 
 
+def main(filepath):
+    # couter = 0
+    for item in queries:
+        # couter += 1
+        # if couter == 1 or couter == 2:  # or couter == 3:
+        # continue
+        sheet_name = item["item_name"]
+        queries_list = []
+        for query in item["quires"]:
+            queries_list.append(query)
+
+        # x = get_sheet(filepath, sheet_name)
+        # print(x)
+        df = process_excel_queries(filepath, sheet_name, queries_list)
+        # print(df)
+        # print("--------------------")
+        # x = get_sheet(filepath, sheet_name)
+        try:
+            # BUG: df dataframe is not currently write into sheet
+            writer = pd.ExcelWriter(
+                filepath, engine="openpyxl", mode="a", if_sheet_exists="overlay"
+            )  # Use 'openpyxl' for append mode
+            df.to_excel(writer, sheet_name=sheet_name, index=False)
+            writer.book.save(filepath)
+            # x = get_sheet(filepath, sheet_name)
+            # print(x)
+            # df.to_excel(filepath, sheet_name=sheet_name, index=False)
+            print(f"sheet {sheet_name} was saved")
+        except Exception as e:
+            print(e)
+        # break
+
+
 # filepath = "../Law_v3.xlsm"
 filepath = "../Law Clients.xlsm"
 
+main(filepath)
 
-for item in queries:
-    sheet_name = item["item_name"]
-    print(sheet_name)
-    for query in item["quires"]:
-        print(query)
-        break
-    break
-exit()
 # processed_data = process_excel_queries(filepath, sheet_name, queries)
 
 # if processed_data is not None:
