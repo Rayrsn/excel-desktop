@@ -31,6 +31,7 @@ from PySide6.QtCore import Qt
 
 from ui.ui_form import Ui_MainWindow
 from update_doc_file import gen_docs
+import utils.pw_query as pw_query
 
 import openpyxl
 from utils.btn import (
@@ -55,7 +56,7 @@ class MainWindow(QMainWindow):
         self.ui.exitbutton.clicked.connect(self.closeApplication)
         self.ui.importbutton.clicked.connect(self.openFile)
         self.ui.exportbutton.clicked.connect(self.gen_docs_btn)
-        self.ui.newentrybutton.clicked.connect(self.ask_for_new_entry)
+        self.ui.newentrybutton.clicked.connect(self.show_new_entry_dialog)
         self.ui.operationsbutton.clicked.connect(self.show_operations_dialog)
         
         self.ui.exitbutton.setCursor(Qt.PointingHandCursor)
@@ -128,6 +129,12 @@ class MainWindow(QMainWindow):
         tab.setLayout(hboxLayout)
 
     def load_excel_data(self, excel_file):
+        try:
+            pw_query.main(excel_file)
+        except Exception as e:
+            self.showAlarm("Error", "File does not exist!\n" + str(e))
+            return
+        
         try:
             self.wb = openpyxl.load_workbook(excel_file)
         except:
@@ -289,6 +296,10 @@ class MainWindow(QMainWindow):
         else:
             self.showAlarm("Error", "Word documents generation failed!")
 
+    def show_new_entry_dialog(self):
+        self.ask_for_new_entry()
+        pw_query.main(self.excel_file)
+    
     def show_operations_dialog(self):
         dialog = OperationsDialog(self.excel_file)
         dialog.exec()
