@@ -93,11 +93,11 @@ def process_excel_queries(filepath, sheet_name, queries):
 
 
 def main(filepath):
-    couter = 0
+    # couter = 0
     for item in queries:
-        couter += 1
-        if couter == 1 or couter == 2:  # or couter == 3:
-            continue
+        # couter += 1
+        # if couter == 1 or couter == 2:  # or couter == 3:
+        # continue
         sheet_name = item["item_name"]
         queries_list = []
         for query in item["quires"]:
@@ -119,7 +119,7 @@ def main(filepath):
             # print(f"sheet {sheet_name} was saved")
         except Exception as e:
             print(e)
-        break
+        # break
 
 
 if __name__ == "__main__":
