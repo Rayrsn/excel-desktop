@@ -153,11 +153,6 @@ def main(filepath):
         # break
 
 
-# filepath = "../Law_v3.xlsm"
-filepath = "../Law Clients.xlsm"
-
-main(filepath)
-
 # processed_data = process_excel_queries(filepath, sheet_name, queries)
 
 # if processed_data is not None:
@@ -167,7 +162,11 @@ main(filepath)
 
 
 if __name__ == "__main__":
-    pass
+    # filepath = "../Law_v3.xlsm"
+    filepath = "../Law Clients.xlsm"
+
+    main(filepath)
+
     # +---------------------------+
     # |  get data of first sheet  |
     # +---------------------------+
