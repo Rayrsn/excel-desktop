@@ -129,6 +129,14 @@ def process_excel_queries(filepath, sheet_name, queries):
 filepath = "../Law Clients.xlsm"
 
 
+for item in queries:
+    sheet_name = item["item_name"]
+    print(sheet_name)
+    for query in item["quires"]:
+        print(query)
+        break
+    break
+exit()
 # processed_data = process_excel_queries(filepath, sheet_name, queries)
 
 # if processed_data is not None:
