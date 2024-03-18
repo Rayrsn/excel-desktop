@@ -378,16 +378,26 @@ queries = [
                     "Appeals - Road Traffic",
                 ],
             },
-            # +---------------------+
-            # |  Magistrates_Merge  |
-            # +---------------------+
+        ],
+    },
+    # +---------------------+
+    # |  Magistrates_Merge  |
+    # +---------------------+
+    {
+        "item_name": "Magistrates Merge",
+        "quires": [
             {
                 "operation": "combine_sheets",
                 "arguments": ["Magistrates", "PoliceStation to Magistrates"],
             },
-            # +---------------------+
-            # |  Crown Court Merge  |
-            # +---------------------+
+        ],
+    },
+    # +---------------------+
+    # |  Crown Court Merge  |
+    # +---------------------+
+    {
+        "item_name": "Crown Court Merge",
+        "quires": [
             {
                 "operation": "combine_sheets",
                 "arguments": [
@@ -396,12 +406,17 @@ queries = [
                     "Magistrates to Crown Court 2",
                 ],
             },
-            # +-----------+
-            # |  group 3  |
-            # +-----------+
-            # +--------+
-            # |  Bail  |
-            # +--------+
+        ],
+    },
+    # +-----------+
+    # |  group 3  |
+    # +-----------+
+    # +--------+
+    # |  Bail  |
+    # +--------+
+    {
+        "item_name": "Bail",
+        "quires": [
             {
                 "operation": "read",
                 "arguments": {"sheet_name": "Police_Station"},
@@ -453,7 +468,7 @@ queries = [
             },
             {
                 "operation": "filter_rows",
-                "arguments": "Outcome = 'Bail'",  # Filter condition
+                "arguments": ["Outcome == 'Bail'"],  # Filter condition
             },
         ],
     },
@@ -517,7 +532,7 @@ queries = [
             # BUG check if condition is yes
             {
                 "operation": "filter_rows",
-                "arguments": "Appeal = 'Yes'",  # Filter condition
+                "arguments": ["Appeal == 'Yes'"],  # Filter condition
             },
             {
                 "operation": "select_columns",
@@ -598,7 +613,7 @@ queries = [
             },
             {
                 "operation": "filter_rows",
-                "arguments": "Appeal = 'Yes'",  # Filter condition
+                "arguments": ["Appeal == 'Yes'"],  # Filter condition
             },
             {
                 "operation": "select_columns",
@@ -669,7 +684,7 @@ queries = [
             },
             {
                 "operation": "filter_rows",
-                "arguments": "Appeal = 'Yes'",  # Filter condition
+                "arguments": ["Appeal == 'Yes'"],  # Filter condition
             },
             {
                 "operation": "select_columns",
@@ -762,7 +777,7 @@ queries = [
             },
             {
                 "operation": "filter_rows",
-                "arguments": "Outcome = 'Charged'",  # Filter condition
+                "arguments": ["Outcome == 'Charged'"],  # Filter condition
             },
             {
                 "operation": "select_columns",
@@ -842,7 +857,7 @@ queries = [
             # BUG: filter_rows have space doesn't check
             {
                 "operation": "filter_rows",
-                "arguments": "Type of Offence = 'Indictable'",  # Filter condition
+                "arguments": ["Type of Offence == 'Indictable'"],  # Filter condition
             },
             {
                 "operation": "select_columns",
@@ -922,7 +937,7 @@ queries = [
             },
             {
                 "operation": "filter_rows",
-                "arguments": "Type of Offence = 'Either Way'",  # Filter condition
+                "arguments": ["Type of Offence == 'Either Way'"],  # Filter condition
             },
             {
                 "operation": "select_columns",
