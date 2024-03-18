@@ -24,10 +24,11 @@ from PySide6.QtWidgets import (
     QComboBox,
     QGridLayout,
     QSpacerItem,
+    QProgressBar,
 )
 
 from PySide6.QtGui import QPixmap, QFont
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QThread, Signal
 
 from ui.ui_form import Ui_MainWindow
 from update_doc_file import gen_docs
@@ -50,6 +51,7 @@ from utils.btn import (
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.worker = None
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         # self.load_excel_data()
@@ -130,7 +132,11 @@ class MainWindow(QMainWindow):
 
     def load_excel_data(self, excel_file):
         try:
-            pw_query.main(excel_file)
+            loading_dialog = LoadingDialog(self)
+            loading_dialog.show()
+            self.worker = Worker(self.excel_file)
+            self.worker.finished.connect(loading_dialog.close)
+            self.worker.start()
         except Exception as e:
             self.showAlarm("Error", "File does not exist!\n" + str(e))
             return
@@ -297,8 +303,13 @@ class MainWindow(QMainWindow):
             self.showAlarm("Error", "Word documents generation failed!")
 
     def show_new_entry_dialog(self):
-        self.ask_for_new_entry()
-        pw_query.main(self.excel_file)
+        dialog = NewEntryDialog(self.wb, self)
+        dialog.exec()
+        loading_dialog = LoadingDialog(self)
+        loading_dialog.show()
+        self.worker = Worker(self.excel_file)
+        self.worker.finished.connect(loading_dialog.close)
+        self.worker.start()
     
     def show_operations_dialog(self):
         dialog = OperationsDialog(self.excel_file)
@@ -480,6 +491,40 @@ class OperationsDialog(QDialog):
             lambda: (generate_stage_reports(self.excel_file), self.accept())
         )
 
+class LoadingDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setModal(True)
+        self.setWindowTitle("Loading...")
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #fff;
+                color: #000;
+                border: 1px solid #999;
+            }
+        """)
+
+        layout = QVBoxLayout()
+        label = QLabel("Please wait...")
+        label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(label)
+
+        progress = QProgressBar(self)
+        progress.setRange(0, 0)  # Set range to 0,0 to create an indeterminate progress bar
+        layout.addWidget(progress)
+
+        self.setLayout(layout)
+
+class Worker(QThread):
+    finished = Signal()
+
+    def __init__(self, excel_file):
+        super().__init__()
+        self.excel_file = excel_file
+
+    def run(self):
+        pw_query.main(self.excel_file)
+        self.finished.emit()
 
 def run():
     app = QApplication(sys.argv)

@@ -154,9 +154,9 @@ def main(filepath):
 
 
 # filepath = "../Law_v3.xlsm"
-filepath = "../Law Clients.xlsm"
+# filepath = "../Law Clients.xlsm"
 
-main(filepath)
+# main(filepath)
 
 # processed_data = process_excel_queries(filepath, sheet_name, queries)
 
