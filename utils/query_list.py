@@ -857,7 +857,7 @@ queries = [
             # BUG: filter_rows have space doesn't check
             {
                 "operation": "filter_rows",
-                "arguments": ["Type of Offence == 'Indictable'"],  # Filter condition
+                "arguments": ["'Type of Offence' == 'Indictable'"],  # Filter condition
             },
             {
                 "operation": "select_columns",
@@ -937,7 +937,7 @@ queries = [
             },
             {
                 "operation": "filter_rows",
-                "arguments": ["Type of Offence == 'Either Way'"],  # Filter condition
+                "arguments": ["'Type of Offence' == 'Either Way'"],  # Filter condition
             },
             {
                 "operation": "select_columns",
