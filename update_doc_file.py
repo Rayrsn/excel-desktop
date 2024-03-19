@@ -43,14 +43,14 @@ def create_doc(doc_name, wd_var, logo_path):
     doc.save("./Docs/" + doc_name)
 
 
-def gen_docs():
+def gen_docs(file_path):
     try:
         if not os.path.exists("./Docs"):
             os.makedirs("./Docs")
 
         logo_path = "./bkp_logo.jpg"
 
-        excel_file = "Law Clients.xlsm"
+        excel_file = file_path
         # Load the workbook and select the first sheet
         wb = load_workbook(excel_file)
         # This selects the first sheet

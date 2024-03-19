@@ -297,7 +297,7 @@ class MainWindow(QMainWindow):
                 )
                 
     def gen_docs_btn(self):
-        if gen_docs():
+        if gen_docs(self.excel_file):
             QMessageBox.information(self, "Success", "Word documents successfully generated! Files are placed in the Docs folder.")
         else:
             self.showAlarm("Error", "Word documents generation failed!")
