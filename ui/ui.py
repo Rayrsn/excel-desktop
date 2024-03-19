@@ -493,6 +493,8 @@ class LoadingDialog(QDialog):
         super().__init__(parent)
         self.setModal(True)
         self.setWindowTitle("Loading...")
+        self.setWindowFlags(self.windowFlags() & ~Qt.WindowCloseButtonHint)
+        # self.setWindowFlags(Qt.Dialog | Qt.CustomizeWindowHint | Qt.Tool)
         self.setStyleSheet("""
             QDialog {
                 background-color: #fff;
