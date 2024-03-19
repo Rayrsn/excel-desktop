@@ -7,6 +7,7 @@ from utils.people_date import *
 
 import os
 
+
 def add_dict_to_doc(doc, my_list, logo_path):
     # Add a paragraph with right alignment
     paragraph = doc.add_paragraph()
@@ -39,14 +40,14 @@ def create_doc(doc_name, wd_var, logo_path):
     add_dict_to_doc(doc, get_content(wd_var), logo_path)
 
     # Save the document
-    doc.save("./Docs"+doc_name)
+    doc.save("./Docs/" + doc_name)
 
 
 def gen_docs():
     try:
         if not os.path.exists("./Docs"):
             os.makedirs("./Docs")
-        
+
         logo_path = "./bkp_logo.jpg"
 
         excel_file = "Law Clients.xlsm"
@@ -84,10 +85,9 @@ def gen_docs():
             }
             name = data["Client's Surname"]
             forname = data["Client's Forename(s)"]
-            doc_name = f"./{name}_{forname}.docx"
+            doc_name = f"{name}_{forname}.docx"
             create_doc(doc_name, wd_var, logo_path)
         return True
     except Exception as e:
         print(f"An error occurred: {e}")
         return False
-    
