@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import openpyxl
 
 
 def get_sheet(filepath, sheet_name):
@@ -35,6 +36,7 @@ def process_excel_queries(filepath, sheet_name, queries):
 
     # Read data from the sheet
     df = pd.read_excel(filepath, sheet_name=sheet_name, engine="openpyxl")
+    operation = ""
     try:
         # Process queries sequentially
         for query in queries:
@@ -57,7 +59,31 @@ def process_excel_queries(filepath, sheet_name, queries):
                     df = pd.read_excel(
                         filepath, sheet_name=sheet_name, engine="openpyxl"
                     )
+            # NOTE: chage header if neaded
             elif operation == "change_type":
+                # if haeder and arguments of change type are note same it will add arguments into header
+                if list(df.columns) != [i for i, _ in arguments]:
+                    # Update the header row
+                    update_header_list = []
+                    update_header_list.extend(df.columns)
+                    for i, _ in arguments:
+                        if i not in df.columns:
+                            update_header_list.append(i)
+
+                    workbook = openpyxl.load_workbook(filepath)
+                    write_header(
+                        workbook=workbook,
+                        target_sh_name=sheet_name,
+                        source_sh="",
+                        start_header_row=1,
+                        header_list=update_header_list,
+                    )
+                    workbook.save(filepath)
+
+                    df = pd.read_excel(
+                        filepath, sheet_name=sheet_name, engine="openpyxl"
+                    )
+
                 # Set data types for specific columns
                 for col_name, col_type in arguments:
                     df[col_name] = df[col_name].astype(col_type)
@@ -71,11 +97,13 @@ def process_excel_queries(filepath, sheet_name, queries):
             # NOTE: must check all conditions
             # BUG: check have yes conditions and Variable that have space in it
             elif operation == "filter_rows":
-                # Can handle multiple filter conditions (adjust logic as needed)
-                # # Filter rows
-                # filtered_df = df[df["Court"] == "Magistrates"]
                 filter_condition = arguments[0]
-                df = df.query(filter_condition)
+                if filter_condition == "'Type of Offence' == 'Either Way'":
+                    df = df[df["Type of Offence"] == "Either Way"]
+                elif filter_condition == "'Type of Offence' == 'Indictable'":
+                    df = df[df["Type of Offence"] == "Either Way"]
+                else:
+                    df = df.query(filter_condition)
 
             elif operation == "select_columns":
                 df = df[arguments]
@@ -89,45 +117,35 @@ def process_excel_queries(filepath, sheet_name, queries):
         return None
     except Exception as e:
         print(f"Error processing queries: {e}")
+        print(f"in sheet '{sheet_name}' and operation '{operation}' ")
         return None
 
 
 def main(filepath):
-    # couter = 0
     for item in queries:
-        # couter += 1
-        # if couter == 1 or couter == 2:  # or couter == 3:
-        # continue
         sheet_name = item["item_name"]
         queries_list = []
         for query in item["quires"]:
             queries_list.append(query)
 
-        # x = get_sheet(filepath, sheet_name)
-        # print(x)
         df = process_excel_queries(filepath, sheet_name, queries_list)
-        # print(df)
-        # print("--------------------")
         try:
             writer = pd.ExcelWriter(
                 filepath, engine="openpyxl", mode="a", if_sheet_exists="overlay"
             )  # Use 'openpyxl' for append mode
             df.to_excel(writer, sheet_name=sheet_name, index=False)
             writer.book.save(filepath)
-            # x = get_sheet(filepath, sheet_name)
-            # print(x)
-            # print(f"sheet {sheet_name} was saved")
         except Exception as e:
             print(e)
-        # break
 
 
 if __name__ == "__main__":
     from query_list import queries
+    from btn import write_header
 
-    # filepath = "../Law_v3.xlsm"
     filepath = "../Law Clients.xlsm"
 
     main(filepath)
 else:
     from utils.query_list import queries
+    from utils.btn import write_header
