@@ -268,19 +268,15 @@ class MainWindow(QMainWindow):
         # Check if wb has been defined
         if not hasattr(self, "wb"):
             self.showAlarm("Error", "Please load an Excel file first!")
-            return
+            return False
 
         # open a popup window for new entry
         dialog = NewEntryDialog(self.wb, self)
         if dialog.exec():
             selected_sheet = dialog.comboBox.currentText()
-            new_entry = {
-                column: lineEdit.text()
-                for column, lineEdit in zip(
-                    [cell.value for cell in self.wb[selected_sheet][1]],
-                    dialog.lineEdits,
-                )
-            }
+            new_entry = {}
+            for i, lineEdit in enumerate(dialog.lineEdits):
+                new_entry[dialog.lineEditsLayout.itemAt(i).widget().placeholderText()] = lineEdit.text()
             self.wb[selected_sheet].append(list(new_entry.values()))
             self.wb.save(self.excel_file)
 
@@ -295,7 +291,7 @@ class MainWindow(QMainWindow):
                 tableWidget.setItem(
                     tableWidget.rowCount() - 1, i, QTableWidgetItem(str(value))
                 )
-                
+            return True
     def gen_docs_btn(self):
         if gen_docs():
             QMessageBox.information(self, "Success", "Word documents successfully generated! Files are placed in the Docs folder.")
@@ -303,13 +299,14 @@ class MainWindow(QMainWindow):
             self.showAlarm("Error", "Word documents generation failed!")
 
     def show_new_entry_dialog(self):
-        dialog = NewEntryDialog(self.wb, self)
-        dialog.exec()
+        if not self.ask_for_new_entry():
+            return
         loading_dialog = LoadingDialog(self)
         loading_dialog.show()
         self.worker = Worker(self.excel_file)
         self.worker.finished.connect(loading_dialog.close)
         self.worker.start()
+        print("New entry added")
     
     def show_operations_dialog(self):
         dialog = OperationsDialog(self.excel_file)
