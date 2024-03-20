@@ -118,7 +118,10 @@ class MainWindow(QMainWindow):
 
         # create a QLabel for the logo
         logoLabel = QLabel(tab)
-        logoPixmap = QPixmap("bkp_logo.jpg")
+        if sys._MEIPASS:
+            logoPixmap = QPixmap(sys._MEIPASS + "/bkp_logo.jpg")
+        else:
+            logoPixmap = QPixmap("bkp_logo.jpg")
         logoLabel.setPixmap(logoPixmap)
         textLabel = QLabel("BKP Solicitors Client Data", tab)
         font = QFont("Calibri", 72)

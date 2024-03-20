@@ -47,8 +47,11 @@ def gen_docs(file_path):
     try:
         if not os.path.exists("./Docs"):
             os.makedirs("./Docs")
-
-        logo_path = "./bkp_logo.jpg"
+        
+        if sys._MEIPASS:
+            logo_path = os.path.join(sys._MEIPASS, "bkp_logo.jpg")
+        else:
+            logo_path = "./bkp_logo.jpg"
 
         excel_file = file_path
         # Load the workbook and select the first sheet
