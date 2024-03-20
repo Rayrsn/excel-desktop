@@ -76,6 +76,9 @@ CMakeLists.txt.user*
 # Virtual Environment
 venv
 .venv
+
+# Project specific
 todo.md
 README.md
 **/**.xlsx
+Docs/
