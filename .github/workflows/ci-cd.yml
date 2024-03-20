@@ -54,13 +54,13 @@ jobs:
       - name: Install PyInstaller
         run: pip install pyinstaller
 
-      - name: Build executable with PyInstaller
-        run: |
-          if ( ${{ runner.os }} == 'windows-latest' ); then
-            pyinstaller --onefile --windowed --icon=bkp_logo.jpg --add-data 'bkp_logo.jpg;.' main.py
-          else
-            pyinstaller --onefile --windowed --icon=bkp_logo.jpg --add-data 'bkp_logo.jpg:.' main.py
-          fi
+      - name: Build executable with PyInstaller (Windows)
+        if: runner.os == 'windows-latest'
+        run: pyinstaller --onefile --windowed --icon=bkp_logo.jpg --add-data 'bkp_logo.jpg;.' main.py
+
+      - name: Build executable with PyInstaller (Non-Windows)
+        if: runner.os != 'windows-latest'
+        run: pyinstaller --onefile --windowed --icon=bkp_logo.jpg --add-data 'bkp_logo.jpg:.' main.py
 
       - name: Upload artifacts (optional)
         uses: actions/upload-artifact@v3
