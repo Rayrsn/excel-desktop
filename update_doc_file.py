@@ -5,7 +5,7 @@ from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from word_content import get_content
 from utils.people_date import *
 
-import os
+import os,sys
 
 
 def add_dict_to_doc(doc, my_list, logo_path):
@@ -48,7 +48,7 @@ def gen_docs(file_path):
         if not os.path.exists("./Docs"):
             os.makedirs("./Docs")
         
-        if sys._MEIPASS:
+        if hasattr(sys, "_MEIPASS"):
             logo_path = os.path.join(sys._MEIPASS, "bkp_logo.jpg")
         else:
             logo_path = "./bkp_logo.jpg"

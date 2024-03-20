@@ -118,7 +118,7 @@ class MainWindow(QMainWindow):
 
         # create a QLabel for the logo
         logoLabel = QLabel(tab)
-        if sys._MEIPASS:
+        if hasattr(sys, "_MEIPASS"):
             logoPixmap = QPixmap(sys._MEIPASS + "/bkp_logo.jpg")
         else:
             logoPixmap = QPixmap("bkp_logo.jpg")
