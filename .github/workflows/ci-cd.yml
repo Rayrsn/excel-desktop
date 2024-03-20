@@ -56,7 +56,7 @@ jobs:
 
       - name: Build executable with PyInstaller
         run: |
-          if [[ "${{ runner.os }}" == "Windows" ]]; then
+          if [ ${{ runner.os }} == 'windows-latest' ]; then
             pyinstaller --onefile --windowed --icon=bkp_logo.jpg --add-data 'bkp_logo.jpg;.' main.py
           else
             pyinstaller --onefile --windowed --icon=bkp_logo.jpg --add-data 'bkp_logo.jpg:.' main.py
