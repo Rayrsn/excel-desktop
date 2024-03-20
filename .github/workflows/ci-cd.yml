@@ -56,7 +56,11 @@ jobs:
 
       - name: Build executable with PyInstaller
         run: |
-          pyinstaller --onefile --windowed --icon=bkp_logo.jpg --add-data 'bkp_logo.jpg;.' main.py
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            pyinstaller --onefile --windowed --icon=bkp_logo.jpg --add-data 'bkp_logo.jpg;.' main.py
+          else
+            pyinstaller --onefile --windowed --icon=bkp_logo.jpg --add-data 'bkp_logo.jpg:.' main.py
+          fi
 
       - name: Upload artifacts (optional)
         uses: actions/upload-artifact@v3
