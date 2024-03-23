@@ -58,15 +58,19 @@ def first_sh_rows_with_numbers(filepath):
     return data_with_row_numbers
 
 
+def clear_sheet(workbook, sheet_name):
+    sheet_workbook = workbook[sheet_name]
+    for row in sheet_workbook.iter_rows():
+        for cell in row:
+            cell.value = None
+
+
+
 def create_sheet(workbook, sheet_name):
     """create sheet and return it"""
     try:
         report_worksheet = workbook[sheet_name]
-
-        # clear sheet
-        for row in report_worksheet.iter_rows():
-            for cell in row:
-                cell.value = None
+        clear_sheet(workbook, sheet_name)
     except:
         report_worksheet = workbook.create_sheet(sheet_name)
     return report_worksheet
