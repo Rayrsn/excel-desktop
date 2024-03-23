@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import openpyxl
+from colorama import Fore, Style
 
 
 def get_sheet(filepath, sheet_name):
@@ -16,6 +17,29 @@ def get_sheet(filepath, sheet_name):
     return pd.read_excel(
         filepath, index_col=0, nrows=None, sheet_name=sheet_name, engine="openpyxl"
     )
+
+
+def print_red(text):
+    print(Fore.RED + text)
+    print(Style.RESET_ALL)
+
+
+def print_green(text):
+    print(Fore.GREEN + text)
+    print(Style.RESET_ALL)
+
+
+def print_before_and_after(main_chracter):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            print_green(main_chracter * 10)
+            result = func(*args, **kwargs)
+            print_green(main_chracter * 10)
+            return result
+
+        return wrapper
+
+    return decorator
 
 
 def process_excel_queries(filepath, sheet_name, queries):
@@ -39,6 +63,8 @@ def process_excel_queries(filepath, sheet_name, queries):
     operation = ""
     try:
         # Process queries sequentially
+        # print_red("befor set query filters")
+        # print(df["Email"])
         for query in queries:
             operation = query["operation"].lower()
             arguments = query.get("arguments", [])
@@ -59,8 +85,10 @@ def process_excel_queries(filepath, sheet_name, queries):
                     df = pd.read_excel(
                         filepath, sheet_name=sheet_name, engine="openpyxl"
                     )
-            # NOTE: chage header if neaded
+            # NOTE: this filter isn't set for all queries Because it make some issue
+            # NOTE: chage header if needed
             elif operation == "change_type":
+                continue
                 # if haeder and arguments of change type are note same it will add arguments into header
                 if list(df.columns) != [i for i, _ in arguments]:
                     # Update the header row
@@ -71,6 +99,7 @@ def process_excel_queries(filepath, sheet_name, queries):
                             update_header_list.append(i)
 
                     workbook = openpyxl.load_workbook(filepath)
+                    clear_sheet(workbook, sheet_name)
                     write_header(
                         workbook=workbook,
                         target_sh_name=sheet_name,
@@ -83,10 +112,11 @@ def process_excel_queries(filepath, sheet_name, queries):
                     df = pd.read_excel(
                         filepath, sheet_name=sheet_name, engine="openpyxl"
                     )
+                    print_green("it's done")
 
                 # Set data types for specific columns
-                for col_name, col_type in arguments:
-                    df[col_name] = df[col_name].astype(col_type)
+                # for col_name, col_type in arguments:
+                #     df[col_name] = df[col_name].astype(col_type)
             elif operation == "remove_columns":
                 df = df.drop(arguments, axis=1)
 
@@ -104,12 +134,21 @@ def process_excel_queries(filepath, sheet_name, queries):
                     df = df[df["Type of Offence"] == "Either Way"]
                 else:
                     df = df.query(filter_condition)
+                    # df = df[df["Court"] == "Police Station"]  # it work for police Station
 
             elif operation == "select_columns":
                 df = df[arguments]
             else:
                 print(f"Warning: Unsupported operation '{operation}'.")
+            # print_red(f"after {operation} query")
+            # print(df["Email"])
+            # print(df)
 
+            # print_red(f" '{sheet_name}' with operation '{operation}'")
+            # print(df["Email"])
+
+        # print_red(f"sheet {sheet_name} was created successfully")
+        # print(df["Email"])
         return df
 
     except FileNotFoundError:
@@ -121,6 +160,7 @@ def process_excel_queries(filepath, sheet_name, queries):
         return None
 
 
+@print_before_and_after("~")
 def main(filepath):
     for item in queries:
         sheet_name = item["item_name"]
@@ -129,19 +169,27 @@ def main(filepath):
             queries_list.append(query)
 
         df = process_excel_queries(filepath, sheet_name, queries_list)
+        # write queries of sheet
+        print_red("*" * 10)
+        print_red("dataframe for write into sheet")
+        print(df)
+        print_red("*" * 10)
         try:
+            print(f"sheet name: '{sheet_name}'")
             writer = pd.ExcelWriter(
                 filepath, engine="openpyxl", mode="a", if_sheet_exists="overlay"
             )  # Use 'openpyxl' for append mode
             df.to_excel(writer, sheet_name=sheet_name, index=False)
             writer.book.save(filepath)
+            print("sheet was saved")
         except Exception as e:
             print(e)
 
 
 if __name__ == "__main__":
+    # from query_list import queries
     from query_list import queries
-    from btn import write_header
+    from btn import write_header, clear_sheet
 
     filepath = "../Law Clients.xlsm"
 
