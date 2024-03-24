@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import openpyxl
 from colorama import Fore, Style
+from pprint import pprint
 
 
 def get_sheet(filepath, sheet_name):
@@ -17,6 +18,21 @@ def get_sheet(filepath, sheet_name):
     return pd.read_excel(
         filepath, index_col=0, nrows=None, sheet_name=sheet_name, engine="openpyxl"
     )
+
+
+def clear_sheet(sheet_name):
+    workbook = openpyxl.load_workbook(filepath)
+    sheet_workbook = workbook[sheet_name]
+    first_row = True
+    for row in sheet_workbook.iter_rows():
+        if first_row:
+            first_row = False
+            continue
+
+        for cell in row:
+            cell.value = None
+
+    workbook.save(filepath)
 
 
 def print_red(text):
@@ -88,50 +104,61 @@ def process_excel_queries(filepath, sheet_name, queries):
             # NOTE: this filter isn't set for all queries Because it make some issue
             # NOTE: chage header if needed
             elif operation == "change_type":
-                continue
+                # continue
+                # print_green(df["Date Opened"])
                 # if haeder and arguments of change type are note same it will add arguments into header
                 if list(df.columns) != [i for i, _ in arguments]:
+                    # print_red("header of list and sheet not same ")
                     # Update the header row
                     update_header_list = []
                     update_header_list.extend(df.columns)
-                    for i, _ in arguments:
-                        if i not in df.columns:
-                            update_header_list.append(i)
+                    for header, _ in arguments:
+                        if header not in df.columns:
+                            update_header_list.append(header)
 
+                    # pprint(update_header_list)
                     workbook = openpyxl.load_workbook(filepath)
-                    clear_sheet(workbook, sheet_name)
+                    # clear_sheet(workbook, sheet_name)
                     write_header(
                         workbook=workbook,
                         target_sh_name=sheet_name,
                         source_sh="",
-                        start_header_row=1,
+                        start_header_row=2,
                         header_list=update_header_list,
                     )
                     workbook.save(filepath)
 
-                    df = pd.read_excel(
-                        filepath, sheet_name=sheet_name, engine="openpyxl"
-                    )
-                    print_green("it's done")
-
+                    # df = get_sheet(filepath, sheet_name)
+                    # print_green(df)
                 # Set data types for specific columns
-                # for col_name, col_type in arguments:
-                #     df[col_name] = df[col_name].astype(col_type)
+                for col_name, col_type in arguments:
+                    df[col_name] = df[col_name].astype(col_type)
+
             elif operation == "remove_columns":
                 df = df.drop(arguments, axis=1)
 
+            # NOTE: rows that have "\n" will be select
             elif operation == "combine_sheets":
-                data_frames = [get_sheet(filepath, i) for i in arguments]
+                data_frames = []
+                # just move rows that have data
+                for sheet_name in arguments:
+                    sh_df = get_sheet(filepath, sheet_name)
+                    sh_df = sh_df[sh_df.iloc[:, -len(df.columns) :].any(axis=1)]
+                    data_frames.append(sh_df)
                 df = pd.concat(data_frames, ignore_index=True)
 
             # NOTE: must check all conditions
             # BUG: check have yes conditions and Variable that have space in it
             elif operation == "filter_rows":
                 filter_condition = arguments[0]
+
+                ###########
+                # handel sheet that have space
                 if filter_condition == "'Type of Offence' == 'Either Way'":
                     df = df[df["Type of Offence"] == "Either Way"]
                 elif filter_condition == "'Type of Offence' == 'Indictable'":
                     df = df[df["Type of Offence"] == "Either Way"]
+                ###########
                 else:
                     df = df.query(filter_condition)
                     # df = df[df["Court"] == "Police Station"]  # it work for police Station
@@ -160,10 +187,14 @@ def process_excel_queries(filepath, sheet_name, queries):
         return None
 
 
-@print_before_and_after("~")
+@print_before_and_after("###")
 def main(filepath):
     for item in queries:
         sheet_name = item["item_name"]
+
+        # clear sheet befor write into it
+        clear_sheet(sheet_name)
+
         queries_list = []
         for query in item["quires"]:
             queries_list.append(query)
@@ -171,25 +202,27 @@ def main(filepath):
         df = process_excel_queries(filepath, sheet_name, queries_list)
         # write queries of sheet
         print_red("*" * 10)
-        print_red("dataframe for write into sheet")
-        print(df)
-        print_red("*" * 10)
+        print(f"sheet name: '{sheet_name}'")
+        print_red(f"dataframe for write into '{sheet_name}' sheet")
+        # print(df)
+        print(df["Email"])
         try:
-            print(f"sheet name: '{sheet_name}'")
             writer = pd.ExcelWriter(
                 filepath, engine="openpyxl", mode="a", if_sheet_exists="overlay"
             )  # Use 'openpyxl' for append mode
             df.to_excel(writer, sheet_name=sheet_name, index=False)
             writer.book.save(filepath)
-            print("sheet was saved")
+            # print("sheet was saved")
         except Exception as e:
             print(e)
 
 
 if __name__ == "__main__":
     # from query_list import queries
-    from query_list import queries
-    from btn import write_header, clear_sheet
+    from ql import queries
+
+    # from query_list import queries
+    from btn import write_header
 
     filepath = "../Law Clients.xlsm"
 
