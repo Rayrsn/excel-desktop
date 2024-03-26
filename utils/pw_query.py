@@ -5,7 +5,7 @@ from colorama import Fore, Style
 from pprint import pprint
 
 
-def get_sheet(filepath, sheet_name):
+def get_sheet(filepath, sheet_name) -> pd.DataFrame:
     if sheet_name == "Opening File":
         return pd.read_excel(
             filepath,
@@ -35,6 +35,14 @@ def clear_sheet(sheet_name):
     workbook.save(filepath)
 
 
+def write_into_sheet(sheet_name, df):
+    writer = pd.ExcelWriter(
+        filepath, engine="openpyxl", mode="a", if_sheet_exists="overlay"
+    )  # Use 'openpyxl' for append mode
+    df.to_excel(writer, sheet_name=sheet_name, index=False)
+    writer.book.save(filepath)
+
+
 def print_red(text):
     print(Fore.RED + text)
     print(Style.RESET_ALL)
@@ -58,7 +66,7 @@ def print_before_and_after(main_chracter):
     return decorator
 
 
-def process_excel_queries(filepath, sheet_name, queries):
+def process_excel_queries(filepath, sheet_name, queries) -> pd.DataFrame | None:
     """Processes a series of Excel query-like operations on a sheet.
 
     Args:
@@ -74,8 +82,9 @@ def process_excel_queries(filepath, sheet_name, queries):
     """
     # NOTE : maybe for date column must date datetiem field
 
-    # Read data from the sheet
-    df = pd.read_excel(filepath, sheet_name=sheet_name, engine="openpyxl")
+    # NOTE: Read data from the target sheet
+    # NOTE it is more than it need but for dont take error set it
+    df = get_sheet(filepath, sheet_name)
     operation = ""
     try:
         # Process queries sequentially
@@ -89,22 +98,11 @@ def process_excel_queries(filepath, sheet_name, queries):
                 # Read data if not already read
                 sh_name = arguments["sheet_name"]
                 # if df is None:
-                if sh_name == "Opening File":
-                    df = pd.read_excel(
-                        filepath,
-                        sheet_name=sh_name,
-                        nrows=None,
-                        skiprows=16,
-                        engine="openpyxl",
-                    )
-                else:
-                    df = pd.read_excel(
-                        filepath, sheet_name=sheet_name, engine="openpyxl"
-                    )
+                df = get_sheet(filepath, sh_name)
             # NOTE: this filter isn't set for all queries Because it make some issue
             # NOTE: chage header if needed
             elif operation == "change_type":
-                # continue
+                continue
                 # print_green(df["Date Opened"])
                 # if haeder and arguments of change type are note same it will add arguments into header
                 if list(df.columns) != [i for i, _ in arguments]:
@@ -150,6 +148,13 @@ def process_excel_queries(filepath, sheet_name, queries):
             # NOTE: must check all conditions
             # BUG: check have yes conditions and Variable that have space in it
             elif operation == "filter_rows":
+                # # For Debug
+                # if sheet_name == "Bail":
+                #     print_green("$$" * 20)
+                #     print_red("befor filter bail sheet")
+                #     print(df)
+                #     print_green("$$" * 20)
+
                 filter_condition = arguments[0]
 
                 ###########
@@ -160,10 +165,20 @@ def process_excel_queries(filepath, sheet_name, queries):
                     df = df[df["Type of Offence"] == "Either Way"]
                 ###########
                 else:
+                    # For Debug
+                    # if sheet_name == "Bail":
+                    #     print(df["Outcome"])
                     df = df.query(filter_condition)
                     # df = df[df["Court"] == "Police Station"]  # it work for police Station
 
+                # # For Debug
+                # if sheet_name == "Bail":
+                #     print_green("$$" * 20)
+                #     print_red("after filter bail sheet")
+                #     print(df)
+                #     print_green("$$" * 20)
             elif operation == "select_columns":
+                continue
                 df = df[arguments]
             else:
                 print(f"Warning: Unsupported operation '{operation}'.")
@@ -193,7 +208,8 @@ def main(filepath):
         sheet_name = item["item_name"]
 
         # clear sheet befor write into it
-        clear_sheet(sheet_name)
+        # NOTE: if clear all sheet befor write into them bail sheet will empty
+        # clear_sheet(sheet_name)
 
         queries_list = []
         for query in item["quires"]:
@@ -201,18 +217,17 @@ def main(filepath):
 
         df = process_excel_queries(filepath, sheet_name, queries_list)
         # write queries of sheet
+        # print_red("*" * 10)
+        # print(f"sheet name: '{sheet_name}'")
+        # print_red(f"dataframe for write into '{sheet_name}' sheet")
+
         print_red("*" * 10)
-        print(f"sheet name: '{sheet_name}'")
-        print_red(f"dataframe for write into '{sheet_name}' sheet")
-        # print(df)
-        print(df["Email"])
+        print(f"sheet '{sheet_name}' have {df.shape[0]} row")
+        # print(df["Email"])
         try:
-            writer = pd.ExcelWriter(
-                filepath, engine="openpyxl", mode="a", if_sheet_exists="overlay"
-            )  # Use 'openpyxl' for append mode
-            df.to_excel(writer, sheet_name=sheet_name, index=False)
-            writer.book.save(filepath)
-            # print("sheet was saved")
+            # pass
+            write_into_sheet(sheet_name, df)
+            print(f"'{sheet_name}' saved")
         except Exception as e:
             print(e)
 
