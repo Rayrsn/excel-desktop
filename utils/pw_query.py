@@ -162,7 +162,7 @@ def process_excel_queries(filepath, sheet_name, queries) -> pd.DataFrame | None:
                 if filter_condition == "'Type of Offence' == 'Either Way'":
                     df = df[df["Type of Offence"] == "Either Way"]
                 elif filter_condition == "'Type of Offence' == 'Indictable'":
-                    df = df[df["Type of Offence"] == "Either Way"]
+                    df = df[df["Type of Offence"] == "Indictable"]
                 ###########
                 else:
                     # For Debug
