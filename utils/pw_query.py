@@ -1,8 +1,40 @@
 import pandas as pd
 import numpy as np
 import openpyxl
+
+######################
+# +---------+
+# |  Debug  |
+# +---------+
+
 from colorama import Fore, Style
 from pprint import pprint
+
+
+def print_red(text):
+    print(Fore.RED + text)
+    print(Style.RESET_ALL)
+
+
+def print_green(text):
+    print(Fore.GREEN + text)
+    print(Style.RESET_ALL)
+
+
+def print_before_and_after(main_chracter):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            print_green(main_chracter * 10)
+            result = func(*args, **kwargs)
+            print_green(main_chracter * 10)
+            return result
+
+        return wrapper
+
+    return decorator
+
+
+######################
 
 
 def get_sheet(filepath, sheet_name) -> pd.DataFrame:
@@ -41,29 +73,6 @@ def write_into_sheet(sheet_name, df):
     )  # Use 'openpyxl' for append mode
     df.to_excel(writer, sheet_name=sheet_name, index=False)
     writer.book.save(filepath)
-
-
-def print_red(text):
-    print(Fore.RED + text)
-    print(Style.RESET_ALL)
-
-
-def print_green(text):
-    print(Fore.GREEN + text)
-    print(Style.RESET_ALL)
-
-
-def print_before_and_after(main_chracter):
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            print_green(main_chracter * 10)
-            result = func(*args, **kwargs)
-            print_green(main_chracter * 10)
-            return result
-
-        return wrapper
-
-    return decorator
 
 
 def process_excel_queries(filepath, sheet_name, queries) -> pd.DataFrame | None:
