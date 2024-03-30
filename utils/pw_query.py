@@ -37,19 +37,18 @@ def print_before_and_after(main_chracter):
 ######################
 
 
-def get_sheet(filepath, sheet_name) -> pd.DataFrame:
+def get_sheet(filepath, sheet_name) -> pd.DataFrame | None:
     if sheet_name == "Opening File":
         return pd.read_excel(
             filepath,
             engine="openpyxl",
             sheet_name=sheet_name,
-            index_col=0,
             nrows=None,
             skiprows=16,
         )
-    return pd.read_excel(
-        filepath, index_col=0, nrows=None, sheet_name=sheet_name, engine="openpyxl"
-    )
+        # index_col=0,
+    return pd.read_excel(filepath, nrows=None, sheet_name=sheet_name, engine="openpyxl")
+    # index_col=0,
 
 
 def clear_sheet(sheet_name):
