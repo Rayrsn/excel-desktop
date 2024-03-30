@@ -212,7 +212,7 @@ def process_excel_queries(filepath, sheet_name, queries) -> pd.DataFrame | None:
 
 
 @print_before_and_after("###")
-def main(filepath):
+def main(filepath, can_write=True):
     for item in queries:
         sheet_name = item["item_name"]
 
@@ -235,8 +235,14 @@ def main(filepath):
         # print(df["Email"])
         try:
             # pass
-            write_into_sheet(sheet_name, df)
-            print(f"'{sheet_name}' saved")
+        except:
+            print(f"error for show df in sheet {sheet_name}")
+
+        # write queries of sheet
+        try:
+            if can_write:
+                write_into_sheet(sheet_name, df)
+                print(f"'{sheet_name}' saved")
         except Exception as e:
             print(e)
 
@@ -244,13 +250,14 @@ def main(filepath):
 if __name__ == "__main__":
     # from query_list import queries
     from ql import queries
+    from query_config import *
 
     # from query_list import queries
     from btn import write_header
 
     filepath = "../Law Clients.xlsm"
 
-    main(filepath)
+    main(filepath, can_write)
 else:
     from utils.query_list import queries
     from utils.btn import write_header
