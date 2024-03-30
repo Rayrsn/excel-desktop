@@ -280,9 +280,19 @@ class MainWindow(QMainWindow):
             new_entry = {}
             for i, lineEdit in enumerate(dialog.lineEdits):
                 new_entry[dialog.lineEditsLayout.itemAt(i).widget().placeholderText()] = lineEdit.text()
+            for entry in new_entry:
+                if new_entry[entry] == "":
+                    new_entry[entry] = None
+            rows = list(self.wb[selected_sheet].iter_rows(values_only=True))
+            for i in reversed(range(len(rows))):
+                if all(cell is None for cell in rows[i]):
+                    self.wb[selected_sheet].delete_rows(i + 1)
+                else:
+                    print(rows[i])
+            
             self.wb[selected_sheet].append(list(new_entry.values()))
             self.wb.save(self.excel_file)
-
+            
             # Get the tableWidget of the tab that corresponds to the selected sheet
             selected_tab_index = self.wb.sheetnames.index(selected_sheet)
             selected_tab = self.ui.tabWidget.widget(selected_tab_index)
