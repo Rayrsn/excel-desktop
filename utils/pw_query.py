@@ -158,7 +158,11 @@ def process_excel_queries(filepath, sheet_name, queries) -> pd.DataFrame | None:
                     df[col_name] = df[col_name].astype(col_type)
 
             elif operation == "remove_columns":
-                df = df.drop(arguments, axis=1)
+                for column in arguments:
+                    try:
+                        df = df.drop(column, axis=1)
+                    except Exception as e:
+                        print_red(f"can't delete columns of sheet '{sheet_name}': {e}")
 
             # NOTE: rows that have "\n" will be select
             elif operation == "combine_sheets":
