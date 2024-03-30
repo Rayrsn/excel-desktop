@@ -82,3 +82,4 @@ todo.md
 README.md
 **/**.xlsx
 Docs/
+utils/query_list_test.py
