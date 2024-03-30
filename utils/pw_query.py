@@ -168,10 +168,18 @@ def process_excel_queries(filepath, sheet_name, queries) -> pd.DataFrame | None:
             elif operation == "combine_sheets":
                 data_frames = []
                 # just move rows that have data
-                for sheet_name in arguments:
-                    sh_df = get_sheet(filepath, sheet_name)
+                for sht_name in arguments:
+                    sh_df = get_sheet(filepath, sht_name)
+                    # filter sheet data with have any data cell
                     sh_df = sh_df[sh_df.iloc[:, -len(df.columns) :].any(axis=1)]
+                    if sht_name == "Magistrates":
+                        sh_df = sh_df[sh_df.iloc[:, 0].notna()]
+                    # sh_df = sh_df[sh_df]
                     data_frames.append(sh_df)
+                if log:
+                    print_green("dataframes in combine_sheets:")
+                    for i in data_frames:
+                        print(i)
                 df = pd.concat(data_frames, ignore_index=True)
 
             # NOTE: must check all conditions
