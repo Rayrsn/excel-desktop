@@ -419,7 +419,7 @@ queries = [
         "quires": [
             {
                 "operation": "read",
-                "arguments": {"sheet_name": "Police_Station"},
+                "arguments": {"sheet_name": "Police Station"},
             },  # Read data (already handled)
             {
                 "operation": "change_type",
@@ -480,7 +480,7 @@ queries = [
         "quires": [
             {
                 "operation": "read",
-                "arguments": {"sheet_name": "Magistrates_Merge"},
+                "arguments": {"sheet_name": "Magistrates Merge"},
             },  # Read data (already handled)
             {
                 "operation": "change_type",
@@ -559,7 +559,7 @@ queries = [
         "quires": [
             {
                 "operation": "read",
-                "arguments": {"sheet_name": "Crown_Court_Merge"},
+                "arguments": {"sheet_name": "Crown Court Merge"},
             },  # Read data (already handled)
             {
                 "operation": "change_type",
@@ -640,7 +640,7 @@ queries = [
         "quires": [
             {
                 "operation": "read",
-                "arguments": {"sheet_name": "Road_Traffic"},
+                "arguments": {"sheet_name": "Road Traffic"},
             },  # Read data (already handled)
             {
                 "operation": "change_type",
@@ -711,7 +711,7 @@ queries = [
         "quires": [
             {
                 "operation": "read",
-                "arguments": {"sheet_name": "Police_Station"},
+                "arguments": {"sheet_name": "Police Station"},
             },  # Read data (already handled)
             {
                 "operation": "change_type",
@@ -804,7 +804,7 @@ queries = [
         "quires": [
             {
                 "operation": "read",
-                "arguments": {"sheet_name": "Magistrates_Merge"},
+                "arguments": {"sheet_name": "Magistrates Merge"},
             },  # Read data (already handled)
             {
                 "operation": "change_type",
@@ -854,7 +854,6 @@ queries = [
                     "Type of Offence",
                 ],
             },
-            # BUG: filter_rows have space doesn't check
             {
                 "operation": "filter_rows",
                 "arguments": ["'Type of Offence' == 'Indictable'"],  # Filter condition
@@ -885,7 +884,7 @@ queries = [
         "quires": [
             {
                 "operation": "read",
-                "arguments": {"sheet_name": "Magistrates_Merge"},
+                "arguments": {"sheet_name": "Magistrates Merge"},
             },  # Read data (already handled)
             {
                 "operation": "change_type",
