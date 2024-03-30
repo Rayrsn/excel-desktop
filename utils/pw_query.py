@@ -68,11 +68,27 @@ def clear_sheet(sheet_name):
 
 
 def write_into_sheet(sheet_name, df):
-    writer = pd.ExcelWriter(
-        filepath, engine="openpyxl", mode="a", if_sheet_exists="overlay"
-    )  # Use 'openpyxl' for append mode
-    df.to_excel(writer, sheet_name=sheet_name, index=False)
-    writer.book.save(filepath)
+    try:
+        try:
+            # writer = pd.ExcelWriter(filepath, engine="openpyxl", mode="w")
+            writer = pd.ExcelWriter(
+                filepath, engine="openpyxl", mode="a", if_sheet_exists="overlay"
+            )
+            # ... rest of your code
+        except zipfile.BadZipFile as e:
+            print_red(f"File integrity issue: {e}")
+            return
+        except PermissionError as e:
+            print_red(f"Permission denied: {e}")
+            # ... handle other potential errors
+            return
+        df.to_excel(writer, sheet_name=sheet_name, index=False)
+        writer.book.save(filepath)
+        # this line have make problem for all file
+        # writer.close() 
+
+    except:
+        print(f"error for writing into file in sheet {sheet_name}")
 
 
 def process_excel_queries(filepath, sheet_name, queries) -> pd.DataFrame | None:
