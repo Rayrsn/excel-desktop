@@ -1,6 +1,6 @@
 import pandas as pd
-import numpy as np
 import openpyxl
+import zipfile
 
 ######################
 # +---------+
@@ -21,10 +21,12 @@ def print_green(text):
     print(Style.RESET_ALL)
 
 
-def print_before_and_after(main_chracter):
+def print_before_and_after(main_chracter, title=""):
     def decorator(func):
         def wrapper(*args, **kwargs):
             print_green(main_chracter * 10)
+            if title:
+                print_green(title)
             result = func(*args, **kwargs)
             print_green(main_chracter * 10)
             return result
@@ -46,9 +48,7 @@ def get_sheet(filepath, sheet_name) -> pd.DataFrame | None:
             nrows=None,
             skiprows=16,
         )
-        # index_col=0,
     return pd.read_excel(filepath, nrows=None, sheet_name=sheet_name, engine="openpyxl")
-    # index_col=0,
 
 
 def clear_sheet(sheet_name):
@@ -64,6 +64,7 @@ def clear_sheet(sheet_name):
             cell.value = None
 
     workbook.save(filepath)
+    workbook.close()
 
 
 def write_into_sheet(sheet_name, df):
@@ -73,24 +74,25 @@ def write_into_sheet(sheet_name, df):
             writer = pd.ExcelWriter(
                 filepath, engine="openpyxl", mode="a", if_sheet_exists="overlay"
             )
-            # ... rest of your code
         except zipfile.BadZipFile as e:
             print_red(f"File integrity issue: {e}")
             return
         except PermissionError as e:
             print_red(f"Permission denied: {e}")
-            # ... handle other potential errors
             return
         df.to_excel(writer, sheet_name=sheet_name, index=False)
         writer.book.save(filepath)
         # this line have make problem for all file
-        # writer.close() 
+        # writer.close()
 
     except:
         print(f"error for writing into file in sheet {sheet_name}")
 
 
-def process_excel_queries(filepath, sheet_name, queries) -> pd.DataFrame | None:
+# @print_before_and_after("~", "into handel query function: ")
+def process_excel_queries(
+    filepath, sheet_name, queries, log=False
+) -> pd.DataFrame | None:
     """Processes a series of Excel query-like operations on a sheet.
 
     Args:
@@ -113,7 +115,6 @@ def process_excel_queries(filepath, sheet_name, queries) -> pd.DataFrame | None:
     try:
         # Process queries sequentially
         # print_red("befor set query filters")
-        # print(df["Email"])
         for query in queries:
             operation = query["operation"].lower()
             arguments = query.get("arguments", [])
@@ -161,7 +162,10 @@ def process_excel_queries(filepath, sheet_name, queries) -> pd.DataFrame | None:
                     try:
                         df = df.drop(column, axis=1)
                     except Exception as e:
-                        print_red(f"can't delete columns of sheet '{sheet_name}': {e}")
+                        if log:
+                            print_red(
+                                f"can't delete columns of sheet '{sheet_name}': {e}"
+                            )
 
             # NOTE: rows that have "\n" will be select
             elif operation == "combine_sheets":
@@ -173,24 +177,17 @@ def process_excel_queries(filepath, sheet_name, queries) -> pd.DataFrame | None:
                     sh_df = sh_df[sh_df.iloc[:, -len(df.columns) :].any(axis=1)]
                     if sht_name == "Magistrates":
                         sh_df = sh_df[sh_df.iloc[:, 0].notna()]
-                    # sh_df = sh_df[sh_df]
                     data_frames.append(sh_df)
                 if log:
                     print_green("dataframes in combine_sheets:")
-                    for i in data_frames:
-                        print(i)
+                    if log:
+                        for i in data_frames:
+                            print(i)
                 df = pd.concat(data_frames, ignore_index=True)
 
             # NOTE: must check all conditions
             # BUG: check have yes conditions and Variable that have space in it
             elif operation == "filter_rows":
-                # # For Debug
-                # if sheet_name == "Bail":
-                #     print_green("$$" * 20)
-                #     print_red("befor filter bail sheet")
-                #     print(df)
-                #     print_green("$$" * 20)
-
                 filter_condition = arguments[0]
 
                 ###########
@@ -201,32 +198,25 @@ def process_excel_queries(filepath, sheet_name, queries) -> pd.DataFrame | None:
                     df = df[df["Type of Offence"] == "Indictable"]
                 ###########
                 else:
-                    # For Debug
-                    # if sheet_name == "Bail":
-                    #     print(df["Outcome"])
                     df = df.query(filter_condition)
                     # df = df[df["Court"] == "Police Station"]  # it work for police Station
 
-                # # For Debug
-                # if sheet_name == "Bail":
-                #     print_green("$$" * 20)
-                #     print_red("after filter bail sheet")
-                #     print(df)
-                #     print_green("$$" * 20)
             elif operation == "select_columns":
                 continue
                 df = df[arguments]
             else:
                 print(f"Warning: Unsupported operation '{operation}'.")
-            # print_red(f"after {operation} query")
-            # print(df["Email"])
-            # print(df)
 
-            # print_red(f" '{sheet_name}' with operation '{operation}'")
-            # print(df["Email"])
+            if log:
+                print_green(f"df in operation '{operation}'")
+                try:
+                    print_green(f"\t{df.shape[0]} row")
+                except Exception as e:
+                    print()
+                    print_red("error for get dataframe")
+                    print_red(e)
+                    pass
 
-        # print_red(f"sheet {sheet_name} was created successfully")
-        # print(df["Email"])
         return df
 
     except FileNotFoundError:
@@ -251,17 +241,13 @@ def main(filepath, can_write=True):
         for query in item["quires"]:
             queries_list.append(query)
 
-        df = process_excel_queries(filepath, sheet_name, queries_list)
-        # write queries of sheet
-        # print_red("*" * 10)
-        # print(f"sheet name: '{sheet_name}'")
-        # print_red(f"dataframe for write into '{sheet_name}' sheet")
-
-        print_red("*" * 10)
-        print(f"sheet '{sheet_name}' have {df.shape[0]} row")
-        # print(df["Email"])
+        df = process_excel_queries(
+            filepath,
+            sheet_name,
+            queries_list,
+        )
         try:
-            # pass
+            print(f"sheet '{sheet_name}' have {df.shape[0]} row")
         except:
             print(f"error for show df in sheet {sheet_name}")
 
@@ -275,16 +261,9 @@ def main(filepath, can_write=True):
 
 
 if __name__ == "__main__":
-    # from query_list import queries
-    from ql import queries
     from query_config import *
-
-    # from query_list import queries
-    from btn import write_header
-
-    filepath = "../Law Clients.xlsm"
 
     main(filepath, can_write)
 else:
     from utils.query_list import queries
-    from utils.btn import write_header
+    # from utils.btn import write_header
