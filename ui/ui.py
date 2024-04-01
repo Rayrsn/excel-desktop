@@ -140,15 +140,17 @@ class MainWindow(QMainWindow):
         self.QueryWorker.finished.connect(loading_dialog.close)
         # run power query
         self.QueryWorker.start()
+        
 
-    def loadExcelData(self, excel_file):
-        try:
-            # run power query
-            self.runQueryWithLoading()
-            pass
-        except Exception as e:
-            self.showAlarm("Error", "File does not exist!\n" + str(e))
-            return
+    def loadExcelData(self, excel_file, run_query=False):
+        if run_query:
+            try:
+                # run power query
+                self.runQueryWithLoading()
+                pass
+            except Exception as e:
+                self.showAlarm("Error", "File does not exist!\n" + str(e))
+                return
 
         try:
             self.wb = openpyxl.load_workbook(excel_file)
@@ -250,7 +252,7 @@ class MainWindow(QMainWindow):
 
         if filePath:
             self.excel_file = filePath
-            self.loadExcelData(self.excel_file)
+            self.loadExcelData(self.excel_file, run_query=True)
             # connect tables to saveExcelData function
             for i in range(self.sheet_number):
                 self.tableWidget = self.ui.tabWidget.widget(i).findChild(QTableWidget)
@@ -371,7 +373,7 @@ class MainWindow(QMainWindow):
     def showOprationDialog(self):
         dialog = OperationsDialog(self.excel_file)
         dialog.exec()
-        self.loadExcelData(self.excel_file)
+        self.loadExcelData(self.excel_file, run_query=False)
 
     def closeApplication(self):
         self.close()
