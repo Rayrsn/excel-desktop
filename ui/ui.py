@@ -45,7 +45,7 @@ from utils.btn import (
     generate_stage_reports,
 )
 
-# excel_file = "../docs/Law Clients Excel Sheet Shared_MainV3.xlsm"
+excel_file = "../docs/Law Clients Excel Sheet Shared_MainV3.xlsm"
 
 
 class MainWindow(QMainWindow):
@@ -132,16 +132,19 @@ class MainWindow(QMainWindow):
         hboxLayout.addWidget(textLabel)
         tab.setLayout(hboxLayout)
 
-    def loadExcelData(self, excel_file):
+    def runQueryWithLoding(self):
+        loading_dialog = LoadingDialog(self)
+        loading_dialog.show()
+        self.QueryWorker = QueryWorker(self.excel_file)
+        # close loading dialog after finished query work
+        self.QueryWorker.finished.connect(loading_dialog.close)
         # run power query
+        self.QueryWorker.start()
+
+    def loadExcelData(self, excel_file):
         try:
-            loading_dialog = LoadingDialog(self)
-            loading_dialog.show()
-            self.QueryWorker = QueryWorker(self.excel_file)
-            # close loading dialog after finished query work
-            self.QueryWorker.finished.connect(loading_dialog.close)
             # run power query
-            self.QueryWorker.start()
+            self.runQueryWithLoding()
         except Exception as e:
             self.showAlarm("Error", "File does not exist!\n" + str(e))
             return
@@ -273,7 +276,8 @@ class MainWindow(QMainWindow):
 
         self.wb.save(self.excel_file)
 
-    def askForNewEntry(self):
+    # BUG: write into rows that have logo
+    def askForNewEntry(self) -> bool:
         # Check if wb has been defined
         if not hasattr(self, "wb"):
             self.showAlarm("Error", "Please load an Excel file first!")
@@ -289,10 +293,15 @@ class MainWindow(QMainWindow):
                     dialog.lineEditsLayout.itemAt(i).widget().placeholderText()
                 ] = lineEdit.text()
             for entry in new_entry:
+                # fix showing None value cell
                 if new_entry[entry] == "":
                     new_entry[entry] = None
             rows = list(self.wb[selected_sheet].iter_rows(values_only=True))
             for i in reversed(range(len(rows))):
+                # skip deleting logo
+                # NOTE: index 16 is header
+                if selected_sheet == "Opening File" and i == 16:
+                    break
                 if all(cell is None for cell in rows[i]):
                     self.wb[selected_sheet].delete_rows(i + 1)
                 else:
@@ -314,6 +323,7 @@ class MainWindow(QMainWindow):
                     tableWidget.rowCount() - 1, i, QTableWidgetItem(str(value))
                 )
             return True
+        return False
 
     def genDocsBtn(self):
         if gen_docs(self.excel_file):
@@ -328,12 +338,8 @@ class MainWindow(QMainWindow):
     def showEnewEntryDialog(self):
         if not self.askForNewEntry():
             return
-        loading_dialog = LoadingDialog(self)
-        loading_dialog.show()
         # run power query
-        self.QueryWorker = QueryWorker(self.excel_file)
-        self.QueryWorker.finished.connect(loading_dialog.close)
-        self.QueryWorker.start()
+        self.runQueryWithLoding()
         print("New entry added")
 
     def showOprationDialog(self):
@@ -568,7 +574,7 @@ def run():
     app = QApplication(sys.argv)
     widget = MainWindow()
     # NOTE: auto load excel file for debug
-    # widget.openFile(auto_load_file=True)
+    widget.openFile(auto_load_file=True)
     widget.showMaximized()
     sys.exit(app.exec())
 
