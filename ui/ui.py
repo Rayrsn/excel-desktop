@@ -135,12 +135,16 @@ class MainWindow(QMainWindow):
     def runQueryWithLoading(self):
         loading_dialog = LoadingDialog(self)
         loading_dialog.show()
-        self.QueryWorker = QueryWorker(self.excel_file)
+        self.QueryWorker = QueryWorker(self.excel_file, self)
         # close loading dialog after finished query work
         self.QueryWorker.finished.connect(loading_dialog.close)
         # run power query
         self.QueryWorker.start()
-        
+        self.QueryWorker.dataLoaded.connect(self.updateUI)  # Add this line
+    
+    def updateUI(self):
+        self.loadExcelData(self.excel_file, run_query=False)
+        print("Data loaded")
 
     def loadExcelData(self, excel_file, run_query=False):
         if run_query:
@@ -377,7 +381,21 @@ class MainWindow(QMainWindow):
 
     def closeApplication(self):
         self.close()
+        
 
+class QueryWorker(QThread):
+    finished = Signal()
+    dataLoaded = Signal()  # Add this line
+
+    def __init__(self, excel_file, main_window):
+        super().__init__()
+        self.excel_file = excel_file
+        self.main_window = main_window
+
+    def run(self):
+        pw_query.main(self.excel_file)
+        self.finished.emit()
+        self.dataLoaded.emit()  # Add this line
 
 class NewEntryDialog(QDialog):
     def __init__(self, wb, parent=None):
@@ -586,16 +604,7 @@ class LoadingDialog(QDialog):
         self.setLayout(layout)
 
 
-class QueryWorker(QThread):
-    finished = Signal()
 
-    def __init__(self, excel_file):
-        super().__init__()
-        self.excel_file = excel_file
-
-    def run(self):
-        pw_query.main(self.excel_file)
-        self.finished.emit()
 
 
 def run():
