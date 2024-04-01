@@ -58,7 +58,7 @@ class MainWindow(QMainWindow):
         self.ui.exitbutton.clicked.connect(self.closeApplication)
         self.ui.importbutton.clicked.connect(self.openFile)
         self.ui.exportbutton.clicked.connect(self.genDocsBtn)
-        self.ui.newentrybutton.clicked.connect(self.showEnewEntryDialog)
+        self.ui.newentrybutton.clicked.connect(self.showNewEntryDialog)
         self.ui.operationsbutton.clicked.connect(self.showOprationDialog)
 
         self.ui.exitbutton.setCursor(Qt.PointingHandCursor)
@@ -132,16 +132,20 @@ class MainWindow(QMainWindow):
         hboxLayout.addWidget(textLabel)
         tab.setLayout(hboxLayout)
 
-    def loadExcelData(self, excel_file):
+    def runQueryWithLoading(self):
+        loading_dialog = LoadingDialog(self)
+        loading_dialog.show()
+        self.QueryWorker = QueryWorker(self.excel_file)
+        # close loading dialog after finished query work
+        self.QueryWorker.finished.connect(loading_dialog.close)
         # run power query
+        self.QueryWorker.start()
+
+    def loadExcelData(self, excel_file):
         try:
-            loading_dialog = LoadingDialog(self)
-            loading_dialog.show()
-            self.QueryWorker = QueryWorker(self.excel_file)
-            # close loading dialog after finished query work
-            self.QueryWorker.finished.connect(loading_dialog.close)
             # run power query
-            self.QueryWorker.start()
+            self.runQueryWithLoading()
+            pass
         except Exception as e:
             self.showAlarm("Error", "File does not exist!\n" + str(e))
             return
@@ -247,7 +251,10 @@ class MainWindow(QMainWindow):
         if filePath:
             self.excel_file = filePath
             self.loadExcelData(self.excel_file)
-            self.tableWidget.cellChanged.connect(self.saveExcelData)
+            # connect tables to saveExcelData function
+            for i in range(self.sheet_number):
+                self.tableWidget = self.ui.tabWidget.widget(i).findChild(QTableWidget)
+                self.tableWidget.cellChanged.connect(self.saveExcelData)
 
     def removeEmptyColumns(self, sheet):
         columns_to_remove = []
@@ -258,22 +265,22 @@ class MainWindow(QMainWindow):
         for i in reversed(columns_to_remove):
             sheet.delete_cols(i)
 
-    # BUG: save data just into first sheet
-    def saveExcelData(self, row, column):
-        if not self.excel_file:
-            self.showAlarm("Error", "file does not exist !")
-
-        # BUG: get first sheet
-        sheet = self.wb.active
-        sheet.cell(
-            row=row + 1,
-            column=column + 1,
-            value=self.tableWidget.item(row, column).text(),
-        )
-
+    def saveExcelData(self):
+        # save data into excel file
+        for sheet_index in range(self.sheet_number):
+            tableWidget = self.ui.tabWidget.widget(sheet_index).findChild(QTableWidget)
+            # write the data from the tableWidget back to the sheet
+            for i in range(tableWidget.rowCount()):
+                for j in range(tableWidget.columnCount()):
+                    if tableWidget.item(i, j) is not None:
+                        row_offset = 16 if sheet_index == 0 else 0
+                        self.wb[self.wb.sheetnames[sheet_index]].cell(
+                            row=i + 1 + row_offset, column=j + 1, value=tableWidget.item(i, j).text()
+                        )
         self.wb.save(self.excel_file)
+        self.runQueryWithLoading()
 
-    def askForNewEntry(self):
+    def askForNewEntry(self) -> bool:
         # Check if wb has been defined
         if not hasattr(self, "wb"):
             self.showAlarm("Error", "Please load an Excel file first!")
@@ -289,11 +296,16 @@ class MainWindow(QMainWindow):
                     dialog.lineEditsLayout.itemAt(i).widget().placeholderText()
                 ] = lineEdit.text()
             for entry in new_entry:
-                if new_entry[entry] == "":
+                # fix showing None value cell
+                if new_entry[entry].strip() == "":
                     new_entry[entry] = None
             rows = list(self.wb[selected_sheet].iter_rows(values_only=True))
             for i in reversed(range(len(rows))):
-                if all(cell is None for cell in rows[i]):
+                # skip deleting logo
+                # NOTE: index 16 is header
+                if selected_sheet == "Opening File" and i == 16:
+                    break
+                if all(cell is None or str(cell).strip() == "" for cell in rows[i]):
                     self.wb[selected_sheet].delete_rows(i + 1)
                 else:
                     print(rows[i])
@@ -314,6 +326,7 @@ class MainWindow(QMainWindow):
                     tableWidget.rowCount() - 1, i, QTableWidgetItem(str(value))
                 )
             return True
+        return False
 
     def genDocsBtn(self):
         if gen_docs(self.excel_file):
@@ -325,15 +338,11 @@ class MainWindow(QMainWindow):
         else:
             self.showAlarm("Error", "Word documents generation failed!")
 
-    def showEnewEntryDialog(self):
+    def showNewEntryDialog(self):
         if not self.askForNewEntry():
             return
-        loading_dialog = LoadingDialog(self)
-        loading_dialog.show()
         # run power query
-        self.QueryWorker = QueryWorker(self.excel_file)
-        self.QueryWorker.finished.connect(loading_dialog.close)
-        self.QueryWorker.start()
+        self.runQueryWithLoading()
         print("New entry added")
 
     def showOprationDialog(self):
