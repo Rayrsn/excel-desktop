@@ -144,7 +144,8 @@ class MainWindow(QMainWindow):
     def loadExcelData(self, excel_file):
         try:
             # run power query
-            self.runQueryWithLoding()
+            # self.runQueryWithLoding()
+            pass
         except Exception as e:
             self.showAlarm("Error", "File does not exist!\n" + str(e))
             return
@@ -339,7 +340,7 @@ class MainWindow(QMainWindow):
         if not self.askForNewEntry():
             return
         # run power query
-        self.runQueryWithLoding()
+        # self.runQueryWithLoding()
         print("New entry added")
 
     def showOprationDialog(self):
