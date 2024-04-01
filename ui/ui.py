@@ -132,7 +132,7 @@ class MainWindow(QMainWindow):
         hboxLayout.addWidget(textLabel)
         tab.setLayout(hboxLayout)
 
-    def runQueryWithLoding(self):
+    def runQueryWithLoading(self):
         loading_dialog = LoadingDialog(self)
         loading_dialog.show()
         self.QueryWorker = QueryWorker(self.excel_file)
@@ -251,7 +251,10 @@ class MainWindow(QMainWindow):
         if filePath:
             self.excel_file = filePath
             self.loadExcelData(self.excel_file)
-            self.tableWidget.cellChanged.connect(self.saveExcelData)
+            # connect tables to saveExcelData function
+            for i in range(self.sheet_number):
+                self.tableWidget = self.ui.tabWidget.widget(i).findChild(QTableWidget)
+                self.tableWidget.cellChanged.connect(self.saveExcelData)
 
     def removeEmptyColumns(self, sheet):
         columns_to_remove = []
@@ -263,18 +266,18 @@ class MainWindow(QMainWindow):
             sheet.delete_cols(i)
 
     # BUG: save data just into first sheet
-    def saveExcelData(self, row, column):
-        if not self.excel_file:
-            self.showAlarm("Error", "file does not exist !")
-
-        # BUG: get first sheet
-        sheet = self.wb.active
-        sheet.cell(
-            row=row + 1,
-            column=column + 1,
-            value=self.tableWidget.item(row, column).text(),
-        )
-
+    def saveExcelData(self):
+        # save data into excel file
+        for sheet_index in range(self.sheet_number):
+            tableWidget = self.ui.tabWidget.widget(sheet_index).findChild(QTableWidget)
+            # write the data from the tableWidget back to the sheet
+            for i in range(tableWidget.rowCount()):
+                for j in range(tableWidget.columnCount()):
+                    if tableWidget.item(i, j) is not None:
+                        row_offset = 16 if sheet_index == 0 else 0
+                        self.wb[self.wb.sheetnames[sheet_index]].cell(
+                            row=i + 1 + row_offset, column=j + 1, value=tableWidget.item(i, j).text()
+                        )
         self.wb.save(self.excel_file)
 
     # BUG: write into rows that have logo
