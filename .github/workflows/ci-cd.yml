@@ -68,3 +68,17 @@ jobs:
         with:
           name: ${{ runner.os }}-executable
           path: dist/ # Replace with the directory containing your executable
+
+      - name: Build debug executable with PyInstaller (Windows)
+        if: runner.os == 'windows-latest'
+        run: pyinstaller --onefile --icon=bkp_logo.jpg --add-data 'bkp_logo.jpg;.' main.py
+
+      - name: Build debug executable with PyInstaller (Non-Windows)
+        if: runner.os != 'windows-latest'
+        run: pyinstaller --onefile --icon=bkp_logo.jpg --add-data 'bkp_logo.jpg:.' main.py
+
+      - name: Upload debug artifacts (optional)
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }}-debug-executable
+          path: dist/ # Replace with the directory containing your debug executable
