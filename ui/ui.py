@@ -265,7 +265,6 @@ class MainWindow(QMainWindow):
         for i in reversed(columns_to_remove):
             sheet.delete_cols(i)
 
-    # BUG: save data just into first sheet
     def saveExcelData(self):
         # save data into excel file
         for sheet_index in range(self.sheet_number):
@@ -280,7 +279,6 @@ class MainWindow(QMainWindow):
                         )
         self.wb.save(self.excel_file)
 
-    # BUG: write into rows that have logo
     def askForNewEntry(self) -> bool:
         # Check if wb has been defined
         if not hasattr(self, "wb"):
@@ -578,7 +576,7 @@ def run():
     app = QApplication(sys.argv)
     widget = MainWindow()
     # NOTE: auto load excel file for debug
-    widget.openFile(auto_load_file=True)
+    # widget.openFile(auto_load_file=True)
     widget.showMaximized()
     sys.exit(app.exec())
 
