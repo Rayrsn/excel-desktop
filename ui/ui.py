@@ -45,7 +45,7 @@ from utils.btn import (
     generate_stage_reports,
 )
 
-excel_file = "../docs/Law Clients Excel Sheet Shared_MainV3.xlsm"
+# excel_file = "../docs/Law Clients Excel Sheet Shared_MainV3.xlsm"
 
 
 class MainWindow(QMainWindow):
@@ -295,7 +295,7 @@ class MainWindow(QMainWindow):
                 ] = lineEdit.text()
             for entry in new_entry:
                 # fix showing None value cell
-                if new_entry[entry] == "":
+                if new_entry[entry].strip() == "":
                     new_entry[entry] = None
             rows = list(self.wb[selected_sheet].iter_rows(values_only=True))
             for i in reversed(range(len(rows))):
@@ -303,7 +303,7 @@ class MainWindow(QMainWindow):
                 # NOTE: index 16 is header
                 if selected_sheet == "Opening File" and i == 16:
                     break
-                if all(cell is None for cell in rows[i]):
+                if all(cell is None or str(cell).strip() == "" for cell in rows[i]):
                     self.wb[selected_sheet].delete_rows(i + 1)
                 else:
                     print(rows[i])
