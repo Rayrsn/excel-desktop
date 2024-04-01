@@ -266,19 +266,31 @@ class MainWindow(QMainWindow):
             sheet.delete_cols(i)
 
     def saveExcelData(self):
-        # save data into excel file
+        # Disconnect the cellChanged signal
+        for i in range(self.sheet_number):
+            self.tableWidget = self.ui.tabWidget.widget(i).findChild(QTableWidget)
+            self.tableWidget.cellChanged.disconnect(self.saveExcelData)
+
+        # Save data into excel file
         for sheet_index in range(self.sheet_number):
             tableWidget = self.ui.tabWidget.widget(sheet_index).findChild(QTableWidget)
-            # write the data from the tableWidget back to the sheet
+            # Write the data from the tableWidget back to the sheet
             for i in range(tableWidget.rowCount()):
                 for j in range(tableWidget.columnCount()):
                     if tableWidget.item(i, j) is not None:
-                        row_offset = 16 if sheet_index == 0 else 0
+                        row_offset = 17 if sheet_index == 0 else 0
                         self.wb[self.wb.sheetnames[sheet_index]].cell(
                             row=i + 1 + row_offset, column=j + 1, value=tableWidget.item(i, j).text()
                         )
         self.wb.save(self.excel_file)
+
+        # Run the query
         self.runQueryWithLoading()
+
+        # Reconnect the cellChanged signal
+        for i in range(self.sheet_number):
+            self.tableWidget = self.ui.tabWidget.widget(i).findChild(QTableWidget)
+            self.tableWidget.cellChanged.connect(self.saveExcelData)
 
     def askForNewEntry(self) -> bool:
         # Check if wb has been defined
@@ -310,6 +322,11 @@ class MainWindow(QMainWindow):
                 else:
                     print(rows[i])
 
+            # Disconnect the cellChanged signal
+            for i in range(self.sheet_number):
+                self.tableWidget = self.ui.tabWidget.widget(i).findChild(QTableWidget)
+                self.tableWidget.cellChanged.disconnect(self.saveExcelData)
+
             # save entry data into selected sheet
             self.wb[selected_sheet].append(list(new_entry.values()))
             self.wb.save(self.excel_file)
@@ -325,6 +342,12 @@ class MainWindow(QMainWindow):
                 tableWidget.setItem(
                     tableWidget.rowCount() - 1, i, QTableWidgetItem(str(value))
                 )
+            
+            # Reconnect the cellChanged signal
+            for i in range(self.sheet_number):
+                self.tableWidget = self.ui.tabWidget.widget(i).findChild(QTableWidget)
+                self.tableWidget.cellChanged.connect(self.saveExcelData)
+            
             return True
         return False
 
