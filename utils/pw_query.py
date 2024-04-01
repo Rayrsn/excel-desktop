@@ -67,7 +67,7 @@ def clear_sheet(sheet_name):
     workbook.close()
 
 
-def write_into_sheet(sheet_name, df):
+def write_into_sheet(sheet_name, df, filepath):
     try:
         try:
             # writer = pd.ExcelWriter(filepath, engine="openpyxl", mode="w")
@@ -85,8 +85,8 @@ def write_into_sheet(sheet_name, df):
         # this line have make problem for all file
         # writer.close()
 
-    except:
-        print(f"error for writing into file in sheet {sheet_name}")
+    except Exception as e:
+        print(f"error for writing into file in sheet {sheet_name}, {e}")
 
 
 # @print_before_and_after("~", "into handel query function: ")
@@ -254,7 +254,7 @@ def main(filepath, can_write=True):
         # write queries of sheet
         try:
             if can_write:
-                write_into_sheet(sheet_name, df)
+                write_into_sheet(sheet_name, df, filepath)
                 print(f"'{sheet_name}' saved")
         except Exception as e:
             print(e)
