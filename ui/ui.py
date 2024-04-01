@@ -58,7 +58,7 @@ class MainWindow(QMainWindow):
         self.ui.exitbutton.clicked.connect(self.closeApplication)
         self.ui.importbutton.clicked.connect(self.openFile)
         self.ui.exportbutton.clicked.connect(self.genDocsBtn)
-        self.ui.newentrybutton.clicked.connect(self.showEnewEntryDialog)
+        self.ui.newentrybutton.clicked.connect(self.showNewEntryDialog)
         self.ui.operationsbutton.clicked.connect(self.showOprationDialog)
 
         self.ui.exitbutton.setCursor(Qt.PointingHandCursor)
@@ -144,7 +144,7 @@ class MainWindow(QMainWindow):
     def loadExcelData(self, excel_file):
         try:
             # run power query
-            # self.runQueryWithLoding()
+            self.runQueryWithLoading()
             pass
         except Exception as e:
             self.showAlarm("Error", "File does not exist!\n" + str(e))
@@ -278,6 +278,7 @@ class MainWindow(QMainWindow):
                             row=i + 1 + row_offset, column=j + 1, value=tableWidget.item(i, j).text()
                         )
         self.wb.save(self.excel_file)
+        self.runQueryWithLoading()
 
     def askForNewEntry(self) -> bool:
         # Check if wb has been defined
@@ -337,11 +338,11 @@ class MainWindow(QMainWindow):
         else:
             self.showAlarm("Error", "Word documents generation failed!")
 
-    def showEnewEntryDialog(self):
+    def showNewEntryDialog(self):
         if not self.askForNewEntry():
             return
         # run power query
-        # self.runQueryWithLoding()
+        self.runQueryWithLoading()
         print("New entry added")
 
     def showOprationDialog(self):
