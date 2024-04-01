@@ -7,18 +7,14 @@ on:
   pull_request:
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+  delete:
+    name: Delete Old Artifacts
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Delete Old Artifacts
-        uses: actions/github-script@v6
+      - uses: actions/github-script@v6
         id: artifact
         with:
+          # Delete all artifacts
           script: |
             const res = await github.rest.actions.listArtifactsForRepo({
               owner: context.repo.owner,
@@ -33,6 +29,13 @@ jobs:
                   artifact_id: id,
                 })
               })
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v3
 
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'
