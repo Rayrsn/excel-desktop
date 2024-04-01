@@ -577,7 +577,7 @@ def run():
     app = QApplication(sys.argv)
     widget = MainWindow()
     # NOTE: auto load excel file for debug
-    # widget.openFile(auto_load_file=True)
+    widget.openFile(auto_load_file=True)
     widget.showMaximized()
     sys.exit(app.exec())
 
