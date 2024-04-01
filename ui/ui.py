@@ -51,24 +51,24 @@ from utils.btn import (
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.worker = None
+        self.QueryWorker = None
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        # self.load_excel_data()
+        # self.loadExcelData()
         self.ui.exitbutton.clicked.connect(self.closeApplication)
         self.ui.importbutton.clicked.connect(self.openFile)
-        self.ui.exportbutton.clicked.connect(self.gen_docs_btn)
-        self.ui.newentrybutton.clicked.connect(self.show_new_entry_dialog)
-        self.ui.operationsbutton.clicked.connect(self.show_operations_dialog)
-        
+        self.ui.exportbutton.clicked.connect(self.genDocsBtn)
+        self.ui.newentrybutton.clicked.connect(self.showEnewEntryDialog)
+        self.ui.operationsbutton.clicked.connect(self.showOprationDialog)
+
         self.ui.exitbutton.setCursor(Qt.PointingHandCursor)
         self.ui.importbutton.setCursor(Qt.PointingHandCursor)
         self.ui.exportbutton.setCursor(Qt.PointingHandCursor)
         self.ui.newentrybutton.setCursor(Qt.PointingHandCursor)
         self.ui.operationsbutton.setCursor(Qt.PointingHandCursor)
-        
-        
-        self.setStyleSheet("""
+
+        self.setStyleSheet(
+            """
             QMainWindow {
                 background-color: #333;
             }
@@ -104,10 +104,9 @@ class MainWindow(QMainWindow):
             QWidget > QPushButton:hover {
                 background-color: #3094fd;
             }
-        """)
+        """
+        )
 
-        
-        
         # clear existing tabs
         self.ui.tabWidget.clear()
 
@@ -133,17 +132,20 @@ class MainWindow(QMainWindow):
         hboxLayout.addWidget(textLabel)
         tab.setLayout(hboxLayout)
 
-    def load_excel_data(self, excel_file):
+    def loadExcelData(self, excel_file):
+        # run power query
         try:
             loading_dialog = LoadingDialog(self)
             loading_dialog.show()
-            self.worker = Worker(self.excel_file)
-            self.worker.finished.connect(loading_dialog.close)
-            self.worker.start()
+            self.QueryWorker = QueryWorker(self.excel_file)
+            # close loading dialog after finished query work
+            self.QueryWorker.finished.connect(loading_dialog.close)
+            # run power query
+            self.QueryWorker.start()
         except Exception as e:
             self.showAlarm("Error", "File does not exist!\n" + str(e))
             return
-        
+
         try:
             self.wb = openpyxl.load_workbook(excel_file)
         except:
@@ -154,7 +156,7 @@ class MainWindow(QMainWindow):
 
         # Remove empty columns from all sheets
         for sheet in self.wb:
-            self.remove_empty_columns(sheet)
+            self.removeEmptyColumns(sheet)
 
         # clear existing tabs
         self.ui.tabWidget.clear()
@@ -166,6 +168,7 @@ class MainWindow(QMainWindow):
                 tab.setObjectName("tab")
                 self.ui.tabWidget.addTab(tab, "")
 
+        # show data of excel in qt table
         for sh_num in range(self.sheet_number):
             sheet_name = self.wb.sheetnames[sh_num]
 
@@ -229,7 +232,7 @@ class MainWindow(QMainWindow):
     def openFile(self, auto_load_file=False):
         try:
             if self.excel_file:
-                self.tableWidget.cellChanged.disconnect(self.save_excel_data)
+                self.tableWidget.cellChanged.disconnect(self.saveExcelData)
         except:
             pass
 
@@ -243,10 +246,10 @@ class MainWindow(QMainWindow):
 
         if filePath:
             self.excel_file = filePath
-            self.load_excel_data(self.excel_file)
-            self.tableWidget.cellChanged.connect(self.save_excel_data)
+            self.loadExcelData(self.excel_file)
+            self.tableWidget.cellChanged.connect(self.saveExcelData)
 
-    def remove_empty_columns(self, sheet):
+    def removeEmptyColumns(self, sheet):
         columns_to_remove = []
         for i, column in enumerate(sheet.iter_cols(values_only=True), start=1):
             if all(cell is None for cell in column):
@@ -255,19 +258,22 @@ class MainWindow(QMainWindow):
         for i in reversed(columns_to_remove):
             sheet.delete_cols(i)
 
-    def save_excel_data(self, row, column):
+    # BUG: save data just into first sheet
+    def saveExcelData(self, row, column):
         if not self.excel_file:
             self.showAlarm("Error", "file does not exist !")
 
+        # BUG: get first sheet
         sheet = self.wb.active
         sheet.cell(
             row=row + 1,
             column=column + 1,
             value=self.tableWidget.item(row, column).text(),
         )
+
         self.wb.save(self.excel_file)
 
-    def ask_for_new_entry(self):
+    def askForNewEntry(self):
         # Check if wb has been defined
         if not hasattr(self, "wb"):
             self.showAlarm("Error", "Please load an Excel file first!")
@@ -279,7 +285,9 @@ class MainWindow(QMainWindow):
             selected_sheet = dialog.comboBox.currentText()
             new_entry = {}
             for i, lineEdit in enumerate(dialog.lineEdits):
-                new_entry[dialog.lineEditsLayout.itemAt(i).widget().placeholderText()] = lineEdit.text()
+                new_entry[
+                    dialog.lineEditsLayout.itemAt(i).widget().placeholderText()
+                ] = lineEdit.text()
             for entry in new_entry:
                 if new_entry[entry] == "":
                     new_entry[entry] = None
@@ -289,10 +297,11 @@ class MainWindow(QMainWindow):
                     self.wb[selected_sheet].delete_rows(i + 1)
                 else:
                     print(rows[i])
-            
+
+            # save entry data into selected sheet
             self.wb[selected_sheet].append(list(new_entry.values()))
             self.wb.save(self.excel_file)
-            
+
             # Get the tableWidget of the tab that corresponds to the selected sheet
             selected_tab_index = self.wb.sheetnames.index(selected_sheet)
             selected_tab = self.ui.tabWidget.widget(selected_tab_index)
@@ -305,26 +314,32 @@ class MainWindow(QMainWindow):
                     tableWidget.rowCount() - 1, i, QTableWidgetItem(str(value))
                 )
             return True
-    def gen_docs_btn(self):
+
+    def genDocsBtn(self):
         if gen_docs(self.excel_file):
-            QMessageBox.information(self, "Success", "Word documents successfully generated! Files are placed in the Docs folder.")
+            QMessageBox.information(
+                self,
+                "Success",
+                "Word documents successfully generated! Files are placed in the Docs folder.",
+            )
         else:
             self.showAlarm("Error", "Word documents generation failed!")
 
-    def show_new_entry_dialog(self):
-        if not self.ask_for_new_entry():
+    def showEnewEntryDialog(self):
+        if not self.askForNewEntry():
             return
         loading_dialog = LoadingDialog(self)
         loading_dialog.show()
-        self.worker = Worker(self.excel_file)
-        self.worker.finished.connect(loading_dialog.close)
-        self.worker.start()
+        # run power query
+        self.QueryWorker = QueryWorker(self.excel_file)
+        self.QueryWorker.finished.connect(loading_dialog.close)
+        self.QueryWorker.start()
         print("New entry added")
-    
-    def show_operations_dialog(self):
+
+    def showOprationDialog(self):
         dialog = OperationsDialog(self.excel_file)
         dialog.exec()
-        self.load_excel_data(self.excel_file)
+        self.loadExcelData(self.excel_file)
 
     def closeApplication(self):
         self.close()
@@ -334,8 +349,9 @@ class NewEntryDialog(QDialog):
     def __init__(self, wb, parent=None):
         super().__init__(parent)
         self.setWindowTitle("New Entry")
-        
-        self.setStyleSheet("""
+
+        self.setStyleSheet(
+            """
             QDialog {
                 background-color: #f0f0f0;
             }
@@ -367,8 +383,9 @@ class NewEntryDialog(QDialog):
                                             stop: 0 #E1E1E1, stop: 0.4 #DDDDDD,
                                             stop: 0.5 #D8D8D8, stop: 1.0 #D3D3D3);
             }
-        """)
-        
+        """
+        )
+
         # Set the size of the dialog to be 3/4 of the size of the parent
         if parent is not None:
             self.resize(parent.size() * 0.5)
@@ -428,8 +445,9 @@ class NewEntryDialog(QDialog):
 class OperationsDialog(QDialog):
     def __init__(self, filepath):
         super().__init__()
-        
-        self.setStyleSheet("""
+
+        self.setStyleSheet(
+            """
             QPushButton {
                 background-color: #007cff; /* Green */
                 border: none;
@@ -444,7 +462,8 @@ class OperationsDialog(QDialog):
             QPushButton:hover {
                 background-color: #3094fd;
             }
-        """)
+        """
+        )
 
         self.excel_file = filepath
 
@@ -501,6 +520,7 @@ class OperationsDialog(QDialog):
             lambda: (generate_stage_reports(self.excel_file), self.accept())
         )
 
+
 class LoadingDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -508,13 +528,15 @@ class LoadingDialog(QDialog):
         self.setWindowTitle("Loading...")
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowCloseButtonHint)
         # self.setWindowFlags(Qt.Dialog | Qt.CustomizeWindowHint | Qt.Tool)
-        self.setStyleSheet("""
+        self.setStyleSheet(
+            """
             QDialog {
                 background-color: #fff;
                 color: #000;
                 border: 1px solid #999;
             }
-        """)
+        """
+        )
 
         layout = QVBoxLayout()
         label = QLabel("Please wait...")
@@ -522,12 +544,15 @@ class LoadingDialog(QDialog):
         layout.addWidget(label)
 
         progress = QProgressBar(self)
-        progress.setRange(0, 0)  # Set range to 0,0 to create an indeterminate progress bar
+        progress.setRange(
+            0, 0
+        )  # Set range to 0,0 to create an indeterminate progress bar
         layout.addWidget(progress)
 
         self.setLayout(layout)
 
-class Worker(QThread):
+
+class QueryWorker(QThread):
     finished = Signal()
 
     def __init__(self, excel_file):
@@ -537,6 +562,7 @@ class Worker(QThread):
     def run(self):
         pw_query.main(self.excel_file)
         self.finished.emit()
+
 
 def run():
     app = QApplication(sys.argv)
