@@ -66,6 +66,7 @@ class MainWindow(QMainWindow):
         self.ui.exportbutton.setCursor(Qt.PointingHandCursor)
         self.ui.newentrybutton.setCursor(Qt.PointingHandCursor)
         self.ui.operationsbutton.setCursor(Qt.PointingHandCursor)
+        self.first_run_entry = True
 
         self.setStyleSheet(
             """
@@ -141,12 +142,16 @@ class MainWindow(QMainWindow):
         # run power query
         self.QueryWorker.start()
         self.QueryWorker.dataLoaded.connect(self.updateUI)  # Add this line
-    
+
     def updateUI(self):
         self.loadExcelData(self.excel_file, run_query=False)
         print("Data loaded")
 
     def loadExcelData(self, excel_file, run_query=False):
+        """
+        load excel data into qt tables
+        """
+
         if run_query:
             try:
                 # run power query
@@ -240,6 +245,7 @@ class MainWindow(QMainWindow):
         QMessageBox.warning(self, header, mes)
 
     def openFile(self, auto_load_file=False):
+        # open file after first time
         try:
             if self.excel_file:
                 self.tableWidget.cellChanged.disconnect(self.saveExcelData)
@@ -256,11 +262,12 @@ class MainWindow(QMainWindow):
 
         if filePath:
             self.excel_file = filePath
+
+            # show excel data into tables
             self.loadExcelData(self.excel_file, run_query=True)
+
             # connect tables to saveExcelData function
-            for i in range(self.sheet_number):
-                self.tableWidget = self.ui.tabWidget.widget(i).findChild(QTableWidget)
-                self.tableWidget.cellChanged.connect(self.saveExcelData)
+            self.tableWidgetCellChange(is_connect=True)
 
     def removeEmptyColumns(self, sheet):
         columns_to_remove = []
@@ -273,9 +280,7 @@ class MainWindow(QMainWindow):
 
     def saveExcelData(self):
         # Disconnect the cellChanged signal
-        for i in range(self.sheet_number):
-            self.tableWidget = self.ui.tabWidget.widget(i).findChild(QTableWidget)
-            self.tableWidget.cellChanged.disconnect(self.saveExcelData)
+        self.tableWidgetCellChange(is_connect=False)
 
         # Save data into excel file
         for sheet_index in range(self.sheet_number):
@@ -286,7 +291,9 @@ class MainWindow(QMainWindow):
                     if tableWidget.item(i, j) is not None:
                         row_offset = 17 if sheet_index == 0 else 0
                         self.wb[self.wb.sheetnames[sheet_index]].cell(
-                            row=i + 1 + row_offset, column=j + 1, value=tableWidget.item(i, j).text()
+                            row=i + 1 + row_offset,
+                            column=j + 1,
+                            value=tableWidget.item(i, j).text(),
                         )
         self.wb.save(self.excel_file)
 
@@ -294,9 +301,7 @@ class MainWindow(QMainWindow):
         self.runQueryWithLoading()
 
         # Reconnect the cellChanged signal
-        for i in range(self.sheet_number):
-            self.tableWidget = self.ui.tabWidget.widget(i).findChild(QTableWidget)
-            self.tableWidget.cellChanged.connect(self.saveExcelData)
+        self.tableWidgetCellChange(is_connect=True)
 
     def askForNewEntry(self) -> bool:
         # Check if wb has been defined
@@ -328,10 +333,9 @@ class MainWindow(QMainWindow):
                 else:
                     print(rows[i])
 
-            # Disconnect the cellChanged signal
-            for i in range(self.sheet_number):
-                self.tableWidget = self.ui.tabWidget.widget(i).findChild(QTableWidget)
-                self.tableWidget.cellChanged.disconnect(self.saveExcelData)
+            if not self.first_run_entry:
+                # Disconnect the cellChanged signal
+                self.tableWidgetCellChange(is_connect=False)
 
             # save entry data into selected sheet
             self.wb[selected_sheet].append(list(new_entry.values()))
@@ -348,12 +352,11 @@ class MainWindow(QMainWindow):
                 tableWidget.setItem(
                     tableWidget.rowCount() - 1, i, QTableWidgetItem(str(value))
                 )
-            
+
             # Reconnect the cellChanged signal
-            for i in range(self.sheet_number):
-                self.tableWidget = self.ui.tabWidget.widget(i).findChild(QTableWidget)
-                self.tableWidget.cellChanged.connect(self.saveExcelData)
-            
+            self.tableWidgetCellChange(is_connect=True)
+
+            self.first_run_entry = False
             return True
         return False
 
@@ -379,9 +382,20 @@ class MainWindow(QMainWindow):
         dialog.exec()
         self.loadExcelData(self.excel_file, run_query=False)
 
+    def tableWidgetCellChange(self, is_connect: bool):
+        """
+        connect and disconnect trigger for change cell
+        """
+        for i in range(self.sheet_number):
+            self.tableWidget = self.ui.tabWidget.widget(i).findChild(QTableWidget)
+            if is_connect:
+                self.tableWidget.cellChanged.connect(self.saveExcelData)
+            else:
+                self.tableWidget.cellChanged.disconnect(self.saveExcelData)
+
     def closeApplication(self):
         self.close()
-        
+
 
 class QueryWorker(QThread):
     finished = Signal()
@@ -396,6 +410,7 @@ class QueryWorker(QThread):
         pw_query.main(self.excel_file)
         self.finished.emit()
         self.dataLoaded.emit()  # Add this line
+
 
 class NewEntryDialog(QDialog):
     def __init__(self, wb, parent=None):
@@ -602,9 +617,6 @@ class LoadingDialog(QDialog):
         layout.addWidget(progress)
 
         self.setLayout(layout)
-
-
-
 
 
 def run():
