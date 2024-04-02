@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest, Windows]
     steps:
       - uses: actions/checkout@v3
 
@@ -31,7 +31,7 @@ jobs:
           # brew install python3  # Assuming Homebrew has Python 3.12 available
 
       - name: Install dependencies (Windows)
-        if: runner.os == 'windows-latest'
+        if: runner.os == 'Windows'
         uses: actions/setup-python@v2
         with:
           python-version: 3
@@ -47,7 +47,7 @@ jobs:
       #   run: brew install qt
 
       # - name: Install Qt (Windows) - Manual or Package Manager
-      #   if: runner.os == 'windows-latest'
+      #   if: runner.os == 'Windows'
       #   run: choco install qt
 
       - name: Install application dependencies
@@ -57,11 +57,11 @@ jobs:
         run: pip install pyinstaller
 
       - name: Build executable with PyInstaller (Windows)
-        if: runner.os == 'windows-latest'
+        if: runner.os == 'Windows'
         run: pyinstaller --onefile --windowed --icon=bkp_logo.jpg --add-data 'bkp_logo.jpg;.' main.py
 
       - name: Build executable with PyInstaller (Non-Windows)
-        if: runner.os != 'windows-latest'
+        if: runner.os != 'Windows'
         run: pyinstaller --onefile --windowed --icon=bkp_logo.jpg --add-data 'bkp_logo.jpg:.' main.py
 
       - name: Upload artifacts (optional)
@@ -71,11 +71,11 @@ jobs:
           path: dist/ # Replace with the directory containing your executable
 
       - name: Build debug executable with PyInstaller (Windows)
-        if: runner.os == 'windows-latest'
+        if: runner.os == 'Windows'
         run: pyinstaller --onefile --icon=bkp_logo.jpg --add-data 'bkp_logo.jpg;.' main.py
 
       - name: Build debug executable with PyInstaller (Non-Windows)
-        if: runner.os != 'windows-latest'
+        if: runner.os != 'Windows'
         run: pyinstaller --onefile --icon=bkp_logo.jpg --add-data 'bkp_logo.jpg:.' main.py
 
       - name: Upload debug artifacts (optional)
