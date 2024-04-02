@@ -330,8 +330,8 @@ class MainWindow(QMainWindow):
                     break
                 if all(cell is None or str(cell).strip() == "" for cell in rows[i]):
                     self.wb[selected_sheet].delete_rows(i + 1)
-                else:
-                    print(rows[i])
+                # else:
+                # print(rows[i])
 
             if not self.first_run_entry:
                 # Disconnect the cellChanged signal
@@ -386,12 +386,15 @@ class MainWindow(QMainWindow):
         """
         connect and disconnect trigger for change cell
         """
-        for i in range(self.sheet_number):
-            self.tableWidget = self.ui.tabWidget.widget(i).findChild(QTableWidget)
-            if is_connect:
-                self.tableWidget.cellChanged.connect(self.saveExcelData)
-            else:
-                self.tableWidget.cellChanged.disconnect(self.saveExcelData)
+        try:
+            for i in range(self.sheet_number):
+                self.tableWidget = self.ui.tabWidget.widget(i).findChild(QTableWidget)
+                if is_connect:
+                    self.tableWidget.cellChanged.connect(self.saveExcelData)
+                else:
+                    self.tableWidget.cellChanged.disconnect(self.saveExcelData)
+        except Exception as e:
+            print(f"have error when is_connect is {is_connect} in :{e} ")
 
     def closeApplication(self):
         self.close()
