@@ -48,6 +48,12 @@ class Ui_MainWindow(object):
         self.newentrybutton.setMinimumSize(QSize(100, 40))
         
         self.horizontalLayout.addWidget(self.newentrybutton)
+        
+        self.refreshbutton = QPushButton(self.centralwidget)
+        self.refreshbutton.setObjectName(u"refreshbutton")
+        self.refreshbutton.setMinimumSize(QSize(100, 40))
+        
+        self.horizontalLayout.addWidget(self.refreshbutton)
 
         self.exportbutton = QPushButton(self.centralwidget)
         self.exportbutton.setObjectName(u"exportbutton")
@@ -118,6 +124,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"BKP Solicitors", None))
         self.importbutton.setText(QCoreApplication.translate("MainWindow", u"Import", None))
         self.newentrybutton.setText(QCoreApplication.translate("MainWindow", u"New Entry", None))
+        self.refreshbutton.setText(QCoreApplication.translate("MainWindow", u"Refresh Data", None))
         self.exportbutton.setText(QCoreApplication.translate("MainWindow", u"Export to Word Document", None))
         self.operationsbutton.setText(QCoreApplication.translate("MainWindow", u"Operations", None))
         self.exitbutton.setText(QCoreApplication.translate("MainWindow", u"Exit", None))

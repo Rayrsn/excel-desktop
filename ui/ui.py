@@ -59,12 +59,14 @@ class MainWindow(QMainWindow):
         self.ui.importbutton.clicked.connect(self.openFile)
         self.ui.exportbutton.clicked.connect(self.genDocsBtn)
         self.ui.newentrybutton.clicked.connect(self.showNewEntryDialog)
+        self.ui.refreshbutton.clicked.connect(self.runQueryWithLoading)
         self.ui.operationsbutton.clicked.connect(self.showOprationDialog)
 
         self.ui.exitbutton.setCursor(Qt.PointingHandCursor)
         self.ui.importbutton.setCursor(Qt.PointingHandCursor)
         self.ui.exportbutton.setCursor(Qt.PointingHandCursor)
         self.ui.newentrybutton.setCursor(Qt.PointingHandCursor)
+        self.ui.refreshbutton.setCursor(Qt.PointingHandCursor)
         self.ui.operationsbutton.setCursor(Qt.PointingHandCursor)
         self.first_run_entry = True
 
