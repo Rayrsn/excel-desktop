@@ -83,3 +83,5 @@ README.md
 **/**.xlsx
 Docs/
 utils/query_list_test.py
+main.spec
+build/main/base_library.zip
