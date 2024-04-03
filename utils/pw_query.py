@@ -130,32 +130,37 @@ def process_excel_queries(
                 continue
                 # print_green(df["Date Opened"])
                 # if haeder and arguments of change type are note same it will add arguments into header
-                if list(df.columns) != [i for i, _ in arguments]:
-                    # print_red("header of list and sheet not same ")
-                    # Update the header row
-                    update_header_list = []
-                    update_header_list.extend(df.columns)
-                    for header, _ in arguments:
-                        if header not in df.columns:
-                            update_header_list.append(header)
+                try:
+                    if list(df.columns) != [i for i, _ in arguments]:
+                        # print_red("header of list and sheet not same ")
+                        # Update the header row
+                        update_header_list = []
+                        update_header_list.extend(df.columns)
+                        for header, _ in arguments:
+                            if header not in df.columns:
+                                update_header_list.append(header)
 
-                    # pprint(update_header_list)
-                    workbook = openpyxl.load_workbook(filepath)
-                    # clear_sheet(workbook, sheet_name)
-                    write_header(
-                        workbook=workbook,
-                        target_sh_name=sheet_name,
-                        source_sh="",
-                        start_header_row=2,
-                        header_list=update_header_list,
-                    )
-                    workbook.save(filepath)
-
+                        # pprint(update_header_list)
+                        workbook = openpyxl.load_workbook(filepath)
+                        # clear_sheet(workbook, sheet_name)
+                        write_header(
+                            workbook=workbook,
+                            target_sh_name=sheet_name,
+                            source_sh="",
+                            start_header_row=1,
+                            header_list=update_header_list,
+                        )
+                        workbook.save(filepath)
+                except Exception as e:
+                    print_red(f"error in change number of header")
                     # df = get_sheet(filepath, sheet_name)
                     # print_green(df)
                 # Set data types for specific columns
-                for col_name, col_type in arguments:
-                    df[col_name] = df[col_name].astype(col_type)
+                try:
+                    for col_name, col_type in arguments:
+                        df[col_name] = df[col_name].astype(col_type)
+                except Exception as e:
+                    print(f"error in chage type of columns {e}")
 
             elif operation == "remove_columns":
                 for column in arguments:
