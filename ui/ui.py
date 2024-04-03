@@ -59,7 +59,6 @@ class MainWindow(QMainWindow):
         self.ui.importbutton.clicked.connect(self.openFile)
         self.ui.exportbutton.clicked.connect(self.genDocsBtn)
         self.ui.newentrybutton.clicked.connect(self.showNewEntryDialog)
-        self.ui.refreshbutton.clicked.connect(self.runQueryWithLoading)
         self.ui.operationsbutton.clicked.connect(self.showOprationDialog)
 
         self.ui.exitbutton.setCursor(Qt.PointingHandCursor)
@@ -270,6 +269,14 @@ class MainWindow(QMainWindow):
 
             # connect tables to saveExcelData function
             self.tableWidgetCellChange(is_connect=True)
+
+            # connect refreshbutton
+            self.ui.refreshbutton.clicked.connect(self.refreshBtn)
+
+    def refreshBtn(self):
+        self.saveExcelData()
+        self.loadExcelData(self.excel_file)
+        # self.runQueryWithLoading()
 
     def removeEmptyColumns(self, sheet):
         columns_to_remove = []
