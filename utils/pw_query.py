@@ -239,8 +239,9 @@ def main(filepath, can_write=True):
         sheet_name = item["item_name"]
 
         # clear sheet befor write into it
-        # NOTE: if clear all sheet befor write into them bail sheet will empty
-        clear_sheet(sheet_name, filepath)
+        # NOTE: if clear "police Station" sheet befor write into it, bail sheet will empty
+        if sheet_name != "Police Station":
+            clear_sheet(sheet_name, filepath)
 
         queries_list = []
         for query in item["quires"]:
