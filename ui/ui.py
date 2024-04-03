@@ -298,7 +298,8 @@ class MainWindow(QMainWindow):
             for i in range(tableWidget.rowCount()):
                 for j in range(tableWidget.columnCount()):
                     if tableWidget.item(i, j) is not None:
-                        row_offset = 17 if sheet_index == 0 else 0
+                        # seprate logic of first sheet for Writing
+                        row_offset = 17 if sheet_index == 0 else 1
                         self.wb[self.wb.sheetnames[sheet_index]].cell(
                             row=i + 1 + row_offset,
                             column=j + 1,
