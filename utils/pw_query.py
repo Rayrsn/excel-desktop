@@ -51,7 +51,7 @@ def get_sheet(filepath, sheet_name) -> pd.DataFrame | None:
     return pd.read_excel(filepath, nrows=None, sheet_name=sheet_name, engine="openpyxl")
 
 
-def clear_sheet(sheet_name):
+def clear_sheet(sheet_name, filepath):
     workbook = openpyxl.load_workbook(filepath)
     sheet_workbook = workbook[sheet_name]
     first_row = True
@@ -235,7 +235,7 @@ def main(filepath, can_write=True):
 
         # clear sheet befor write into it
         # NOTE: if clear all sheet befor write into them bail sheet will empty
-        # clear_sheet(sheet_name)
+        clear_sheet(sheet_name, filepath)
 
         queries_list = []
         for query in item["quires"]:
@@ -266,4 +266,5 @@ if __name__ == "__main__":
     main(filepath, can_write)
 else:
     from utils.query_list import queries
+
     # from utils.btn import write_header
