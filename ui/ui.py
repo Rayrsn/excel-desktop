@@ -148,7 +148,7 @@ class MainWindow(QMainWindow):
         self.loadExcelData(self.excel_file, run_query=False)
         print("Data loaded")
 
-    def loadExcelData(self, excel_file, run_query=False):
+    def loadExcelData(self, run_query=False):
         """
         load excel data into qt tables
         """
@@ -163,7 +163,7 @@ class MainWindow(QMainWindow):
                 return
 
         try:
-            self.wb = openpyxl.load_workbook(excel_file)
+            self.wb = openpyxl.load_workbook(self.excel_file)
         except:
             self.showAlarm("Format error", "File format is not supported!")
             return
