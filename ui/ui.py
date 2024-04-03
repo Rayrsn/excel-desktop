@@ -145,7 +145,7 @@ class MainWindow(QMainWindow):
         self.QueryWorker.dataLoaded.connect(self.updateUI)  # Add this line
 
     def updateUI(self):
-        self.loadExcelData(self.excel_file, run_query=False)
+        self.loadExcelData(run_query=False)
         print("Data loaded")
 
     def loadExcelData(self, run_query=False):
@@ -265,7 +265,7 @@ class MainWindow(QMainWindow):
             self.excel_file = filePath
 
             # show excel data into tables
-            self.loadExcelData(self.excel_file, run_query=True)
+            self.loadExcelData(run_query=True)
 
             # connect tables to saveExcelData function
             self.tableWidgetCellChange(is_connect=True)
@@ -275,7 +275,7 @@ class MainWindow(QMainWindow):
 
     def refreshBtn(self):
         self.saveExcelData()
-        self.loadExcelData(self.excel_file)
+        self.loadExcelData()
         # self.runQueryWithLoading()
 
     def removeEmptyColumns(self, sheet):
@@ -390,7 +390,7 @@ class MainWindow(QMainWindow):
     def showOprationDialog(self):
         dialog = OperationsDialog(self.excel_file)
         dialog.exec()
-        self.loadExcelData(self.excel_file, run_query=False)
+        self.loadExcelData(run_query=False)
 
     def tableWidgetCellChange(self, is_connect: bool):
         """
