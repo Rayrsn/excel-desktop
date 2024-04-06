@@ -32,7 +32,6 @@ from PySide6.QtCore import Qt, QThread, Signal
 
 from ui.ui_form import Ui_MainWindow
 from update_doc_file import gen_docs
-import utils.pw_query as pw_query
 
 import openpyxl
 from utils.btn import (
@@ -51,7 +50,6 @@ from utils.btn import (
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.QueryWorker = None
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         # self.loadExcelData()
@@ -134,33 +132,14 @@ class MainWindow(QMainWindow):
         hboxLayout.addWidget(textLabel)
         tab.setLayout(hboxLayout)
 
-    def runQueryWithLoading(self):
-        loading_dialog = LoadingDialog(self)
-        loading_dialog.show()
-        self.QueryWorker = QueryWorker(self.excel_file, self)
-        # close loading dialog after finished query work
-        self.QueryWorker.finished.connect(loading_dialog.close)
-        # run power query
-        self.QueryWorker.start()
-        self.QueryWorker.dataLoaded.connect(self.updateUI)  # Add this line
-
     def updateUI(self):
-        self.loadExcelData(run_query=False)
+        self.loadExcelData()
         print("Data loaded")
 
-    def loadExcelData(self, run_query=False):
+    def loadExcelData(self):
         """
         load excel data into qt tables
         """
-
-        if run_query:
-            try:
-                # run power query
-                self.runQueryWithLoading()
-                pass
-            except Exception as e:
-                self.showAlarm("Error", "File does not exist!\n" + str(e))
-                return
 
         try:
             self.wb = openpyxl.load_workbook(self.excel_file)
@@ -265,18 +244,10 @@ class MainWindow(QMainWindow):
             self.excel_file = filePath
 
             # show excel data into tables
-            self.loadExcelData(run_query=True)
+            self.loadExcelData()
 
             # connect tables to saveExcelData function
             self.tableWidgetCellChange(is_connect=True)
-
-            # connect refreshbutton
-            self.ui.refreshbutton.clicked.connect(self.refreshBtn)
-
-    def refreshBtn(self):
-        self.saveExcelData()
-        self.loadExcelData()
-        # self.runQueryWithLoading()
 
     def removeEmptyColumns(self, sheet):
         columns_to_remove = []
@@ -306,9 +277,6 @@ class MainWindow(QMainWindow):
                             value=tableWidget.item(i, j).text(),
                         )
         self.wb.save(self.excel_file)
-
-        # Run the query
-        self.runQueryWithLoading()
 
         # Reconnect the cellChanged signal
         self.tableWidgetCellChange(is_connect=True)
@@ -383,14 +351,12 @@ class MainWindow(QMainWindow):
     def showNewEntryDialog(self):
         if not self.askForNewEntry():
             return
-        # run power query
-        self.runQueryWithLoading()
         print("New entry added")
 
     def showOprationDialog(self):
         dialog = OperationsDialog(self.excel_file)
         dialog.exec()
-        self.loadExcelData(run_query=False)
+        self.loadExcelData()
 
     def tableWidgetCellChange(self, is_connect: bool):
         """
@@ -408,22 +374,6 @@ class MainWindow(QMainWindow):
 
     def closeApplication(self):
         self.close()
-
-
-class QueryWorker(QThread):
-    finished = Signal()
-    dataLoaded = Signal()  # Add this line
-
-    def __init__(self, excel_file, main_window):
-        super().__init__()
-        self.excel_file = excel_file
-        self.main_window = main_window
-
-    def run(self):
-        pw_query.main(self.excel_file)
-        self.finished.emit()
-        self.dataLoaded.emit()  # Add this line
-
 
 class NewEntryDialog(QDialog):
     def __init__(self, wb, parent=None):
