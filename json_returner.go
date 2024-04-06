@@ -11,22 +11,22 @@ func main() {
 		// This is the JSON data we'll parse
 		jsonData := []byte(`{
 			"sheet1": {
-				"headers": [
-					"header A",
-					"header B",
-					"header C"
-				],
 				"data": {
-					"column A": [
-						"row 1": "value 1",
-						"row 2": "value 2",
-						"row 3": "value 3"
+					"header A": [
+						{"row 1": "value 1"},
+						{"row 2": "value 2"},
+						{"row 3": "value 3"}
 					],
-					"column B": [
-						"row 1": "value 4",
-						"row 2": "value 5",
-						"row 3": "value 6"
+					"header B": [
+						{"row 1": "value 4"},
+						{"row 2": "value 5"},
+						{"row 3": "value 6"}
 					],
+					"header C": [
+						{"row 1": "value 7"},
+						{"row 2": "value 8"},
+						{"row 3": "value 9"}
+					]
 				}
 			}
 		}`)

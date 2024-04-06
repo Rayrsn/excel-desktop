@@ -3,11 +3,6 @@ import requests
 """ Example JSON response from the server
 {
     "sheet1": {
-        "headers": [
-            "header A",
-            "header B",
-            "header C"
-        ],
         "data": {
             "column A": [
                 "row 1": "value 1",
@@ -32,7 +27,7 @@ def get_sheets(json_data):
     return json_data.keys()
 
 def get_headers(json_data, sheet):
-    return json_data[sheet]["headers"]
+    return json_data[sheet]["data"].keys()
 
 def get_data_from_column(json_data, sheet, column):
     return json_data[sheet]["data"][column]

@@ -44,8 +44,7 @@ from utils.btn import (
     generate_stage_reports,
 )
 
-# excel_file = "../docs/Law Clients Excel Sheet Shared_MainV3.xlsm"
-
+import ui.network as network
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -220,7 +219,83 @@ class MainWindow(QMainWindow):
 
             # resize columns to fit the contents
             self.tableWidget.resizeColumnsToContents()
+    
+    """ Example JSON response from the server
+    {
+        "sheet1": {
+            "data": {
+                "header A": [
+                    "row 1": "value 1",
+                    "row 2": "value 2",
+                    "row 3": "value 3"
+                ],
+                "header B": [
+                    "row 1": "value 4",
+                    "row 2": "value 5",
+                    "row 3": "value 6"
+                ],
+            }
+        }
+    }
+    """
 
+    def loadJsonData(self, url):
+        """
+        load JSON data into qt tables
+        """
+
+        try:
+            json_data = network.get_data(url)
+        except:
+            self.showAlarm("Network error", "Failed to fetch data from the server!")
+            return
+
+        sheets = network.get_sheets(json_data)
+
+        # clear existing tabs
+        self.ui.tabWidget.clear()
+
+        # create tabs
+        for _ in range(len(sheets)):
+            tab = QWidget()
+            tab.setObjectName("tab")
+            self.ui.tabWidget.addTab(tab, "")
+
+        # show data of JSON in qt table
+        for sh_num, sheet in enumerate(sheets):
+            # Create a new QTableWidget for this tab
+            self.tableWidget = QTableWidget()
+            self.tableWidget.setRowCount(len(network.get_data_from_row(json_data, sheet, 0)))
+            self.tableWidget.setColumnCount(len(network.get_headers(json_data, sheet)))
+            # Enable sorting
+            self.tableWidget.setSortingEnabled(True)
+
+            # Add the Qself.tableWidget to a QHBoxLayout inside a QVBoxLayout
+            hboxLayout = QHBoxLayout()
+            hboxLayout.addWidget(self.tableWidget)
+            vboxLayout = QVBoxLayout()
+            vboxLayout.addLayout(hboxLayout)
+            self.ui.tabWidget.widget(sh_num).setLayout(vboxLayout)
+
+            # Change tabs name
+            self.ui.tabWidget.setTabText(sh_num, sheet)
+
+            # set value of table from JSON data
+            headers = network.get_headers(json_data, sheet)
+            self.tableWidget.setHorizontalHeaderLabels(headers)
+
+            for i in range(self.tableWidget.rowCount()):
+                for j in range(self.tableWidget.columnCount()):
+                    headers = list(headers)
+                    cell_data = network.get_data_from_cell(json_data, sheet, headers[j], i)
+                    # Extract the value from the dictionary
+                    value = cell_data[f"row {i + 1}"]
+                    self.tableWidget.setItem(i, j, QTableWidgetItem(str(value)))
+            
+            # resize columns to fit the contents
+            self.tableWidget.resizeColumnsToContents()
+    
+        
     def showAlarm(self, header, mes):
         QMessageBox.warning(self, header, mes)
 
@@ -244,7 +319,9 @@ class MainWindow(QMainWindow):
             self.excel_file = filePath
 
             # show excel data into tables
-            self.loadExcelData()
+            # self.loadExcelData()
+            url = "http://localhost:8080"
+            self.loadJsonData(url)
 
             # connect tables to saveExcelData function
             self.tableWidgetCellChange(is_connect=True)
