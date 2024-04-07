@@ -491,6 +491,22 @@ class MainWindow(QMainWindow):
         except Exception as e:
             print(f"have error when is_connect is {is_connect} in :{e} ")
 
+    def exportToJson(self):
+        json_data = {}
+        for i in range(self.ui.tabWidget.count()):
+            tableWidget = self.ui.tabWidget.widget(i).findChild(QTableWidget)
+            sheet_name = self.ui.tabWidget.tabText(i)
+            sheet_data = {}
+            for j in range(tableWidget.columnCount()):
+                header = tableWidget.horizontalHeaderItem(j).text()
+                column_data = []
+                for k in range(tableWidget.rowCount()):
+                    cell_data = tableWidget.item(k, j).text()
+                    column_data.append({f"row {k + 1}": cell_data})
+                sheet_data[header] = column_data
+            json_data[sheet_name] = {"data": sheet_data}
+        return json_data
+
     def closeApplication(self):
         self.close()
 
