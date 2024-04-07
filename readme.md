@@ -1,5 +1,6 @@
 changed loadExcelData to loadJsonData (uses the same logic, but modified to work with json)
 
+added addSheetToTabs (use cases: adding a report tab in the program)
 
 ## GET REQUESTS
 
