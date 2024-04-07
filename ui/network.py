@@ -19,6 +19,8 @@ import requests
 }
 """
 
+## GET REQUESTS ##
+
 def get_data(url):
     response = requests.get(url)
     return response.json()
@@ -40,3 +42,22 @@ def get_data_from_row(json_data, sheet, row):
 
 def get_data_from_cell(json_data, sheet, column, row):
     return json_data[sheet]["data"][column][row]
+
+def get_sheet_data(json_data, sheet):
+    return json_data[sheet]["data"]
+
+## POST REQUESTS ##
+def post_data(url, data):
+    response = requests.post(url, data=data)
+    return response.json()
+
+## OPERATIONS ##
+def add_sheet(json_data, sheet, data):
+    json_data[sheet] = {"data": data}
+    return json_data
+
+def gen_report(url, rep_name):
+    # TODO: Post the data and get the response
+    json_data = get_data(url)
+    sheet = get_sheet_data(json_data, "sheet1")
+    return sheet

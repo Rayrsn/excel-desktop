@@ -46,6 +46,8 @@ from utils.btn import (
 
 import ui.network as network
 
+URL = "http://localhost:8080"
+
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -289,13 +291,55 @@ class MainWindow(QMainWindow):
                     headers = list(headers)
                     cell_data = network.get_data_from_cell(json_data, sheet, headers[j], i)
                     # Extract the value from the dictionary
-                    value = cell_data[f"row {i + 1}"]
+                    value = cell_data.keys()
+                    value = list(value)[0]
                     self.tableWidget.setItem(i, j, QTableWidgetItem(str(value)))
             
             # resize columns to fit the contents
             self.tableWidget.resizeColumnsToContents()
     
+    def addSheetToTabs(self, sheet_name, data):
+        # Create a new tab
+        tab = QWidget()
+        tab.setObjectName("tab")
+        self.ui.tabWidget.addTab(tab, "")
+        # Create a new QTableWidget for this tab
+        self.tableWidget = QTableWidget()
+        self.tableWidget.setRowCount(len(data[next(iter(data))]))
+        self.tableWidget.setColumnCount(len(data))
+        # Enable sorting
+        self.tableWidget.setSortingEnabled(True)
+
+        # Add the Qself.tableWidget to a QHBoxLayout inside a QVBoxLayout
+        hboxLayout = QHBoxLayout()
+        hboxLayout.addWidget(self.tableWidget)
+        vboxLayout = QVBoxLayout()
+        vboxLayout.addLayout(hboxLayout)
+        self.ui.tabWidget.widget(self.ui.tabWidget.count() - 1).setLayout(vboxLayout)
+
+        # Change tabs name
+        self.ui.tabWidget.setTabText(self.ui.tabWidget.count() - 1, sheet_name)
+
+        # set value of table from data
+        headers = list(data.keys())
+        self.tableWidget.setHorizontalHeaderLabels(headers)
+
+        for i, row in enumerate(data):
+            for j, header in enumerate(headers):
+                row_data = data[header][i]  # Get the dictionary for the current row
+                cell_data = list(row_data.values())[0]
+                self.tableWidget.setItem(i, j, QTableWidgetItem(str(cell_data)))
         
+        # resize columns to fit the contents
+        self.tableWidget.resizeColumnsToContents()
+    
+    def loadReport(self, url, name):
+        # Fetch the data
+        data = network.gen_report(url)
+
+        # Display the data in a new tab
+        self.addSheetToTabs("Upcoming Cases this Month", data)
+    
     def showAlarm(self, header, mes):
         QMessageBox.warning(self, header, mes)
 
@@ -320,8 +364,7 @@ class MainWindow(QMainWindow):
 
             # show excel data into tables
             # self.loadExcelData()
-            url = "http://localhost:8080"
-            self.loadJsonData(url)
+            self.loadJsonData(URL)
 
             # connect tables to saveExcelData function
             self.tableWidgetCellChange(is_connect=True)
@@ -431,9 +474,8 @@ class MainWindow(QMainWindow):
         print("New entry added")
 
     def showOprationDialog(self):
-        dialog = OperationsDialog(self.excel_file)
+        dialog = OperationsDialog(self, self.excel_file, URL)
         dialog.exec()
-        self.loadExcelData()
 
     def tableWidgetCellChange(self, is_connect: bool):
         """
@@ -550,7 +592,7 @@ class NewEntryDialog(QDialog):
 
 
 class OperationsDialog(QDialog):
-    def __init__(self, filepath):
+    def __init__(self, parent, filepath, url):
         super().__init__()
 
         self.setStyleSheet(
@@ -573,6 +615,7 @@ class OperationsDialog(QDialog):
         )
 
         self.excel_file = filepath
+        self.parent = parent
 
         self.setWindowTitle("Operations")
 
@@ -582,7 +625,7 @@ class OperationsDialog(QDialog):
         self.monthly_cases_report_button.setMinimumSize(100, 40)
         self.layout.addWidget(self.monthly_cases_report_button, 0, 0)
         self.monthly_cases_report_button.clicked.connect(
-            lambda: (generate_monthly_cases_report(self.excel_file), self.accept())
+            lambda: (parent.loadReport(url, "monthly"), self.accept())
         )
 
         self.weekly_cases_report_button = QPushButton("Cases this Week")
