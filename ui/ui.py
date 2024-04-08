@@ -46,7 +46,7 @@ from utils.btn import (
 
 import ui.network as network
 
-URL = "http://localhost:8080"
+URL = "http://localhost:8000"
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -267,8 +267,8 @@ class MainWindow(QMainWindow):
         for sh_num, sheet in enumerate(sheets):
             # Create a new QTableWidget for this tab
             self.tableWidget = QTableWidget()
-            self.tableWidget.setRowCount(len(network.get_data_from_row(json_data, sheet, 0)))
-            self.tableWidget.setColumnCount(len(network.get_headers(json_data, sheet)))
+            self.tableWidget.setRowCount(network.get_row_count(json_data, sheet))
+            self.tableWidget.setColumnCount(network.get_column_count(json_data, sheet))
             # Enable sorting
             self.tableWidget.setSortingEnabled(True)
 
@@ -289,11 +289,8 @@ class MainWindow(QMainWindow):
             for i in range(self.tableWidget.rowCount()):
                 for j in range(self.tableWidget.columnCount()):
                     headers = list(headers)
-                    cell_data = network.get_data_from_cell(json_data, sheet, headers[j], i)
-                    # Extract the value from the dictionary
-                    value = cell_data.keys()
-                    value = list(value)[0]
-                    self.tableWidget.setItem(i, j, QTableWidgetItem(str(value)))
+                    cell_data = network.get_data_from_cell(json_data, sheet, i, headers[j])
+                    self.tableWidget.setItem(i, j, QTableWidgetItem(str(cell_data)))
             
             # resize columns to fit the contents
             self.tableWidget.resizeColumnsToContents()
