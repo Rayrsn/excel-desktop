@@ -2,6 +2,7 @@ changed loadExcelData to loadJsonData (uses the same logic, but modified to work
 
 added addSheetToTabs (use cases: adding a report tab in the program)
 
+
 ## GET REQUESTS
 
 - get_data
@@ -10,36 +11,48 @@ added addSheetToTabs (use cases: adding a report tab in the program)
 
 - get_sheets
     - arguments: json_data
-    - returns: sheet_names
+    - returns: list
 
 - get_headers
-    - arguments: json_data, sheet_name
-    - returns: headers
+    - arguments: json_data, sheet
+    - returns: list
 
 - get_data_from_column
-    - arguments: json_data, sheet_name, column_name
-    - returns: data
+    - arguments: json_data, sheet, column
+    - returns: list
 
 - get_data_from_row
-    - arguments: json_data, sheet_name, row_number
-    - returns: data
+    - arguments: json_data, sheet, row_idx
+    - returns: dict
 
 - get_data_from_cell
-    - arguments: json_data, sheet_name, column_name, row_number
+    - arguments: json_data, sheet, row_idx, column
     - returns: data
+
+- get_sheet_data
+    - arguments: json_data, sheet
+    - returns: list
+
+- get_row_count
+    - arguments: json_data, sheet
+    - returns: int
+
+- get_column_count
+    - arguments: json_data, sheet
+    - returns: int
 
 ## POST REQUESTS
 
 - post_data
     - arguments: url, data
-    - returns: json_data
+    - returns: response.json()
 
 ## OPERATIONS
 
 - add_sheet
-    - arguments: json_data, sheet_name, data
-    - returns: json_data
+    - arguments: json_data, sheet_name
+    - returns: None
 
 - gen_report
-    - arguments: url, report_type
-    - returns: sheet_data
+    - arguments: url, rep_name
+    - returns: None
