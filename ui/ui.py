@@ -268,9 +268,11 @@ class MainWindow(QMainWindow):
             # Create a new QTableWidget for this tab
             self.tableWidget = QTableWidget()
             self.tableWidget.setRowCount(network.get_row_count(json_data, sheet))
-            self.tableWidget.setColumnCount(network.get_column_count(json_data, sheet))
+            self.tableWidget.setColumnCount(network.get_column_count(json_data, sheet)-1)
             # Enable sorting
             self.tableWidget.setSortingEnabled(True)
+            # set default sorting by first column
+            # self.tableWidget.sortItems(0)
 
             # Add the Qself.tableWidget to a QHBoxLayout inside a QVBoxLayout
             hboxLayout = QHBoxLayout()
@@ -284,13 +286,28 @@ class MainWindow(QMainWindow):
 
             # set value of table from JSON data
             headers = network.get_headers(json_data, sheet)
+            if "row" in headers:
+                headers.remove("row")
             self.tableWidget.setHorizontalHeaderLabels(headers)
+            
+            # sort the data in each sheet by the Sr_No column
 
             for i in range(self.tableWidget.rowCount()):
                 for j in range(self.tableWidget.columnCount()):
                     headers = list(headers)
                     cell_data = network.get_data_from_cell(json_data, sheet, i, headers[j])
-                    self.tableWidget.setItem(i, j, QTableWidgetItem(str(cell_data)))
+                    # if cell_data is float then convert it to int
+                    if cell_data == "__null__":
+                        cell_data = ""
+                    if cell_data is not None and cell_data != "" and cell_data != "__null__":
+                        if isinstance(cell_data, float) or (isinstance(cell_data, str) and cell_data.replace('.', '', 1).isdigit()):
+                            cell_data = int(float(cell_data))
+                        # if in column sr no, then convert it to int
+                        if headers[j] == "Sr_No":
+                            cell_data = int(cell_data)
+                    # Skip setting the item if the header is "row"
+                    if headers[j] != "row":
+                        self.tableWidget.setItem(i, j, QTableWidgetItem(str(cell_data)))
             
             # resize columns to fit the contents
             self.tableWidget.resizeColumnsToContents()
@@ -306,6 +323,8 @@ class MainWindow(QMainWindow):
         self.tableWidget.setColumnCount(len(data))
         # Enable sorting
         self.tableWidget.setSortingEnabled(True)
+        # set default sorting by first column
+        self.tableWidget.sortItems(0)
 
         # Add the Qself.tableWidget to a QHBoxLayout inside a QVBoxLayout
         hboxLayout = QHBoxLayout()
