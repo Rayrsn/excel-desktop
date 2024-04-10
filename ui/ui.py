@@ -351,10 +351,24 @@ class MainWindow(QMainWindow):
     
     def loadReport(self, url, name):
         # Fetch the data
-        data = network.gen_report(url)
+        url = f"{url}/operations/{name}"
+        data = network.get_data(url)
+        
 
-        # Display the data in a new tab
-        self.addSheetToTabs("Upcoming Cases this Month", data)
+        # Display the data in a new table popup
+        dialog = QDialog(self)
+        dialog.setWindowTitle(name)
+        dialog.resize(800, 600)
+        layout = QVBoxLayout(dialog)
+        table = TableViewer(dialog)
+        if name == "legal-aid":
+            table.set_data(data, name="legal-aid")
+        else:
+            table.set_data(data)
+        layout.addWidget(table)
+        dialog.exec()
+        
+        
     
     def showAlarm(self, header, mes):
         QMessageBox.warning(self, header, mes)
@@ -490,7 +504,7 @@ class MainWindow(QMainWindow):
         print("New entry added")
 
     def showOprationDialog(self):
-        dialog = OperationsDialog(self, self.excel_file, URL)
+        dialog = OperationsDialog(self, URL)
         dialog.exec()
 
     def tableWidgetCellChange(self, is_connect: bool):
@@ -624,7 +638,7 @@ class NewEntryDialog(QDialog):
 
 
 class OperationsDialog(QDialog):
-    def __init__(self, parent, filepath, url):
+    def __init__(self, parent, url):
         super().__init__()
 
         self.setStyleSheet(
@@ -646,7 +660,6 @@ class OperationsDialog(QDialog):
         """
         )
 
-        self.excel_file = filepath
         self.parent = parent
 
         self.setWindowTitle("Operations")
@@ -664,42 +677,42 @@ class OperationsDialog(QDialog):
         self.weekly_cases_report_button.setMinimumSize(100, 40)
         self.layout.addWidget(self.weekly_cases_report_button, 0, 1)
         self.weekly_cases_report_button.clicked.connect(
-            lambda: (generate_weekly_cases_report(self.excel_file), self.accept())
+            lambda: (parent.loadReport(url, "weekly"), self.accept())
         )
 
         self.legal_aid_report_button = QPushButton("Legal Aid")
         self.legal_aid_report_button.setMinimumSize(100, 40)
         self.layout.addWidget(self.legal_aid_report_button, 1, 0)
         self.legal_aid_report_button.clicked.connect(
-            lambda: (generate_legal_aid_report(self.excel_file), self.accept())
+            lambda: (parent.loadReport(url, "legal-aid"), self.accept())
         )
 
         self.bail_refused_report_button = QPushButton("Bail Refused")
         self.bail_refused_report_button.setMinimumSize(100, 40)
         self.layout.addWidget(self.bail_refused_report_button, 1, 1)
         self.bail_refused_report_button.clicked.connect(
-            lambda: (generate_bail_refused_report(self.excel_file), self.accept())
+            lambda: (parent.loadReport(url, "bail-refused"), self.accept())
         )
 
         self.empty_counsel_report_button = QPushButton("Empty Counsel")
         self.empty_counsel_report_button.setMinimumSize(100, 40)
         self.layout.addWidget(self.empty_counsel_report_button, 2, 0)
         self.empty_counsel_report_button.clicked.connect(
-            lambda: (generate_empty_counsel_report(self.excel_file), self.accept())
+            lambda: (parent.loadReport(url, "empty-counsel"), self.accept())
         )
 
         self.non_zero_balance_report_button = QPushButton("Non Zero Balance")
         self.non_zero_balance_report_button.setMinimumSize(100, 40)
         self.layout.addWidget(self.non_zero_balance_report_button, 2, 1)
         self.non_zero_balance_report_button.clicked.connect(
-            lambda: (generate_non_zero_balance_report(self.excel_file), self.accept())
+            lambda: (parent.loadReport(url, "non-zero"), self.accept())
         )
 
         self.stage_reports_button = QPushButton("Stage Reports")
         self.stage_reports_button.setMinimumSize(100, 40)
         self.layout.addWidget(self.stage_reports_button, 3, 0)
         self.stage_reports_button.clicked.connect(
-            lambda: (generate_stage_reports(self.excel_file), self.accept())
+            lambda: (parent.loadReport(url, "stage"), self.accept())
         )
 
 
@@ -733,6 +746,68 @@ class LoadingDialog(QDialog):
 
         self.setLayout(layout)
 
+
+"""EXAMPLE DATA for legal-aid
+
+{
+    "Submitted": 4,
+    "Approved": 2,
+    "Appealed": 1,
+    "Refused": 2,
+    "Date Stamped": 2,
+    "__null__": 4,
+    "Total Number of Clients": 15
+}
+"""
+
+class TableViewer(QTableWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setSortingEnabled(True)
+        self.sortItems(0)
+
+    def set_data(self, data, name=None):
+        # Get the headers from the first row (the keys of the dictionary)
+        if name == "legal-aid":
+            headers = list(data.keys())
+            self.setColumnCount(2)
+            self.setHorizontalHeaderLabels(["Legal Aid Category", "Number of Clients"])
+        else:
+            headers = list(data[0].keys())
+            self.setColumnCount(len(headers))
+            # Set the headers
+            self.setHorizontalHeaderLabels(headers)
+        self.setRowCount(len(data))
+        
+        
+        # Set the data
+        if name == "legal-aid":
+            for i, header in enumerate(headers):
+                cell_data = data[header]
+                if header == "__null__":
+                    header = ""
+                    cell_data = ""
+                if isinstance(cell_data, float):
+                    cell_data = int(cell_data)
+                if cell_data == "__null__":
+                    cell_data = ""
+                self.setItem(i, 0, QTableWidgetItem(header))
+                self.setItem(i, 1, QTableWidgetItem(str(cell_data)))
+        else:
+            for i, row in enumerate(data):
+                for j, header in enumerate(headers):                    
+                    cell_data = row[header]
+                    if isinstance(cell_data, float):
+                        cell_data = int(cell_data)
+                    if cell_data == "__null__":
+                        cell_data = ""
+                    self.setItem(i, j, QTableWidgetItem(str(cell_data)))
+        
+        # Resize the columns to fit the contents
+        self.resize_columns()
+        
+    def resize_columns(self):
+        self.resizeColumnsToContents()
 
 def run():
     app = QApplication(sys.argv)
