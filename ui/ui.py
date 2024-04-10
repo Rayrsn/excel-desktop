@@ -58,7 +58,7 @@ class MainWindow(QMainWindow):
         self.ui.importbutton.clicked.connect(self.openFile)
         self.ui.exportbutton.clicked.connect(self.genDocsBtn)
         self.ui.newentrybutton.clicked.connect(self.showNewEntryDialog)
-        self.ui.operationsbutton.clicked.connect(self.showOprationDialog)
+        self.ui.operationsbutton.clicked.connect(self.showOperationDialog)
 
         self.ui.exitbutton.setCursor(Qt.PointingHandCursor)
         self.ui.importbutton.setCursor(Qt.PointingHandCursor)
@@ -248,7 +248,8 @@ class MainWindow(QMainWindow):
 
         try:
             json_data = network.get_data(url)
-        except:
+        except Exception as e:
+            print(f"Error: {e}")
             self.showAlarm("Network error", "Failed to fetch data from the server!")
             return
 
@@ -352,8 +353,15 @@ class MainWindow(QMainWindow):
     def loadReport(self, url, name):
         # Fetch the data
         url = f"{url}/operations/{name}"
-        data = network.get_data(url)
+        try:
+            data = network.get_data(url)
+        except Exception as e:
+            print(f"Error: {e}")
+            self.showAlarm("Network error", "Failed to fetch data from the server!")
+            return
         
+        if data is None:
+            return
 
         # Display the data in a new table popup
         dialog = QDialog(self)
@@ -503,7 +511,7 @@ class MainWindow(QMainWindow):
             return
         print("New entry added")
 
-    def showOprationDialog(self):
+    def showOperationDialog(self):
         dialog = OperationsDialog(self, URL)
         dialog.exec()
 
