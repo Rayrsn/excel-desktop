@@ -46,7 +46,7 @@ from utils.btn import (
 
 import ui.network as network
 
-URL = "http://localhost:8000"
+URL = "https://excel-api.fly.dev"
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -245,7 +245,14 @@ class MainWindow(QMainWindow):
         """
         load JSON data into qt tables
         """
-
+        
+        # make a loading dialog
+        loading_dialog = LoadingDialog(self)
+        loading_dialog.show()
+        loading_dialog.repaint()
+        loading_dialog.update()
+        
+        # Fetch the data
         try:
             json_data = network.get_data(url)
         except Exception as e:
@@ -255,6 +262,9 @@ class MainWindow(QMainWindow):
 
         sheets = network.get_sheets(json_data)
 
+        # close loading dialog
+        loading_dialog.close()
+        
         # clear existing tabs
         self.ui.tabWidget.clear()
 
@@ -369,10 +379,16 @@ class MainWindow(QMainWindow):
         dialog.resize(800, 600)
         layout = QVBoxLayout(dialog)
         table = TableViewer(dialog)
-        if name == "legal-aid":
-            table.set_data(data, name="legal-aid")
-        else:
-            table.set_data(data)
+        try:
+            if name == "legal-aid":
+                table.set_data(data, name="legal-aid")
+            elif name == "bail-refused":
+                table.set_data(data, name="bail-refused")
+            else:
+                table.set_data(data)
+        except IndexError:
+            self.showAlarm("Error", "No data to display!")
+            return
         layout.addWidget(table)
         dialog.exec()
         
@@ -755,16 +771,174 @@ class LoadingDialog(QDialog):
         self.setLayout(layout)
 
 
-"""EXAMPLE DATA for legal-aid
+"""EXAMPLE DATA for bail-refused report
 
 {
-    "Submitted": 4,
-    "Approved": 2,
-    "Appealed": 1,
-    "Refused": 2,
-    "Date Stamped": 2,
-    "__null__": 4,
-    "Total Number of Clients": 15
+    "Magistrates Merge": [],
+    "Crown Court Merge": [
+        {
+            "id": 2,
+            "row": 1,
+            "Office": "London",
+            "Matter_Type": "Criminal (Magistrates)",
+            "Email": "Haroon@bkpsolicitors.com",
+            "File_No": "5",
+            "Fee_Earner": "__null__",
+            "Clients_Surname": "Umer",
+            "Clients_Forenames": "Haroon",
+            "Address": "101 Leeds Rd",
+            "City": "__null__",
+            "Postcode": "BD3 0NG",
+            "Mobile_Number": "7858977659",
+            "HMP": "__null__",
+            "Prison_Number": "A945829",
+            "National_Insurance_Number": "JZ636434C",
+            "Legal_Aid": "Appealed",
+            "Legal_Aid1": null,
+            "Court": "Police Station",
+            "Name_of_Counsel": "__null__",
+            "Counsel_Email_Address": "__null__",
+            "Chambers": "__null__",
+            "PTPH_Date": "__null__",
+            "Type_of_Letter": "__null__",
+            "Letter_Sent": "__null__",
+            "Stage_1": "2024-03-01T00:00:00",
+            "Stage_2": "2024-03-02T00:00:00",
+            "Stage_3": "2024-03-24T00:00:00",
+            "Stage_4": "2024-03-25T00:00:00",
+            "CTR_Date": "__null__",
+            "Trial_Date": "__null__",
+            "Outcome": "__null__",
+            "Type_of_Letter_2": "__null__",
+            "Appeal": "__null__",
+            "Legal_Aid2": "__null__",
+            "Matt_Number_If_Legal_Aid_Granted": "__null__",
+            "Offence": null,
+            "Type_of_Offence": null,
+            "First_Hearing_Date": null,
+            "Outcome_First_Hearing": null,
+            "Letter_Issued": null,
+            "Second_Hearing_Date": null,
+            "Outcome_Second_Hearing": null,
+            "Type_of_Letter_3": null,
+            "Letter_Issued2": null,
+            "Sr_No": null,
+            "Previous_Number": null,
+            "CRIME": null,
+            "Date_Opened": null,
+            "Clients_Title": null,
+            "Marital_Status": null,
+            "Letters_to_Home_Address": null,
+            "Postal_Address_if_Different": null,
+            "Postal_Address_Postcode": null,
+            "Home_Telephone": null,
+            "Work_Telephone": null,
+            "Occupation": null,
+            "Date_of_Birth": "01.01.2000",
+            "Ethnicity": null,
+            "_3rd_Party": null,
+            "Initial": null,
+            "Conflict": null,
+            "Date": null,
+            "Costs_Information": null,
+            "Cost_Estimate": null,
+            "Charge_Basis": null,
+            "Next_Date": null,
+            "Time": null,
+            "Location": null,
+            "Has_Result_Been_Diarised": null,
+            "Co_Accused": null,
+            "Conflict_1": null,
+            "Name_of_Co_Accused": null,
+            "Represented_by": null,
+            "Comments": "__null__",
+            "Bail": "Bail Refused",
+            "DCS_Uploaded": "__null__",
+            "Defense_Case_Statement_Date": "__null__",
+            "URN": "__null__"
+        },
+        {
+            "id": 3,
+            "row": 2,
+            "Office": "London",
+            "Matter_Type": "Criminal (Magistrates)",
+            "Email": "IK@hotmail.com",
+            "File_No": "8",
+            "Fee_Earner": "__null__",
+            "Clients_Surname": "Khan",
+            "Clients_Forenames": "Imran",
+            "Address": "43 Hprton Grange Rd",
+            "City": "__null__",
+            "Postcode": "bd7 3ah",
+            "Mobile_Number": "7858977659",
+            "HMP": "__null__",
+            "Prison_Number": "A945832",
+            "National_Insurance_Number": "JZ636434C",
+            "Legal_Aid": "Submitted",
+            "Legal_Aid1": null,
+            "Court": "Police Station",
+            "Name_of_Counsel": "__null__",
+            "Counsel_Email_Address": "__null__",
+            "Chambers": "__null__",
+            "PTPH_Date": "__null__",
+            "Type_of_Letter": "__null__",
+            "Letter_Sent": "__null__",
+            "Stage_1": "__null__",
+            "Stage_2": "__null__",
+            "Stage_3": "__null__",
+            "Stage_4": "__null__",
+            "CTR_Date": "__null__",
+            "Trial_Date": "__null__",
+            "Outcome": "__null__",
+            "Type_of_Letter_2": "__null__",
+            "Appeal": "__null__",
+            "Legal_Aid2": "__null__",
+            "Matt_Number_If_Legal_Aid_Granted": "__null__",
+            "Offence": null,
+            "Type_of_Offence": null,
+            "First_Hearing_Date": null,
+            "Outcome_First_Hearing": null,
+            "Letter_Issued": null,
+            "Second_Hearing_Date": null,
+            "Outcome_Second_Hearing": null,
+            "Type_of_Letter_3": null,
+            "Letter_Issued2": null,
+            "Sr_No": null,
+            "Previous_Number": null,
+            "CRIME": null,
+            "Date_Opened": null,
+            "Clients_Title": null,
+            "Marital_Status": null,
+            "Letters_to_Home_Address": null,
+            "Postal_Address_if_Different": null,
+            "Postal_Address_Postcode": null,
+            "Home_Telephone": null,
+            "Work_Telephone": null,
+            "Occupation": null,
+            "Date_of_Birth": "01.01.92",
+            "Ethnicity": null,
+            "_3rd_Party": null,
+            "Initial": null,
+            "Conflict": null,
+            "Date": null,
+            "Costs_Information": null,
+            "Cost_Estimate": null,
+            "Charge_Basis": null,
+            "Next_Date": null,
+            "Time": null,
+            "Location": null,
+            "Has_Result_Been_Diarised": null,
+            "Co_Accused": null,
+            "Conflict_1": null,
+            "Name_of_Co_Accused": null,
+            "Represented_by": null,
+            "Comments": "__null__",
+            "Bail": "JC Bail Refused",
+            "DCS_Uploaded": "__null__",
+            "Defense_Case_Statement_Date": "__null__",
+            "URN": "__null__"
+        }
+    ]
 }
 """
 
@@ -780,12 +954,25 @@ class TableViewer(QTableWidget):
             headers = list(data.keys())
             self.setColumnCount(2)
             self.setHorizontalHeaderLabels(["Legal Aid Category", "Number of Clients"])
+        elif name == "bail-refused":
+            table_headers = ["Office", "Matter_Type", "Email", "File_No", "Fee_Earner", "Clients_Surname",
+                            "Clients_Forenames", "Address", "City", "Postcode", "Mobile_Number", "Date_of_Birth",
+                            "HMP", "Prison_Number", "National_Insurance_Number", "Legal_Aid", "Court"]
+            self.setColumnCount(len(table_headers))
+            self.setHorizontalHeaderLabels(table_headers)
         else:
             headers = list(data[0].keys())
             self.setColumnCount(len(headers))
             # Set the headers
             self.setHorizontalHeaderLabels(headers)
-        self.setRowCount(len(data))
+        
+        if name == "bail-refused":
+            row_count = 0
+            for value in data.values():
+                row_count += len(value)
+            self.setRowCount(row_count)
+        else:
+            self.setRowCount(len(data))
         
         
         # Set the data
@@ -801,6 +988,18 @@ class TableViewer(QTableWidget):
                     cell_data = ""
                 self.setItem(i, 0, QTableWidgetItem(header))
                 self.setItem(i, 1, QTableWidgetItem(str(cell_data)))
+        elif name == "bail-refused":
+            row_count = 0
+            for value in data.values():
+                for dic in value:
+                    for j, header in enumerate(table_headers):
+                        cell_data = dic[header]
+                        if isinstance(cell_data, float):
+                            cell_data = int(cell_data)
+                        if cell_data == "__null__":
+                            cell_data = ""
+                        self.setItem(row_count, j, QTableWidgetItem(str(cell_data)))
+                    row_count += 1
         else:
             for i, row in enumerate(data):
                 for j, header in enumerate(headers):                    
