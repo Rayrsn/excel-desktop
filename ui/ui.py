@@ -53,7 +53,6 @@ class MainWindow(QMainWindow):
         super().__init__(parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        # self.loadExcelData()
         self.ui.exitbutton.clicked.connect(self.closeApplication)
         self.ui.importbutton.clicked.connect(self.openFile)
         self.ui.exportbutton.clicked.connect(self.genDocsBtn)
@@ -133,114 +132,6 @@ class MainWindow(QMainWindow):
         hboxLayout.addWidget(textLabel)
         tab.setLayout(hboxLayout)
 
-    def updateUI(self):
-        self.loadExcelData()
-        print("Data loaded")
-
-    def loadExcelData(self):
-        """
-        load excel data into qt tables
-        """
-
-        try:
-            self.wb = openpyxl.load_workbook(self.excel_file)
-        except:
-            self.showAlarm("Format error", "File format is not supported!")
-            return
-
-        self.sheet_number = len(self.wb.sheetnames)
-
-        # Remove empty columns from all sheets
-        for sheet in self.wb:
-            self.removeEmptyColumns(sheet)
-
-        # clear existing tabs
-        self.ui.tabWidget.clear()
-
-        # create tabs
-        if self.sheet_number > 1:
-            for _ in range(self.sheet_number):
-                tab = QWidget()
-                tab.setObjectName("tab")
-                self.ui.tabWidget.addTab(tab, "")
-
-        # show data of excel in qt table
-        for sh_num in range(self.sheet_number):
-            sheet_name = self.wb.sheetnames[sh_num]
-
-            # Create a new QTableWidget for this tab
-            self.tableWidget = QTableWidget()
-            self.tableWidget.setRowCount(self.wb[sheet_name].max_row)
-            self.tableWidget.setColumnCount(self.wb[sheet_name].max_column)
-            # Enable sorting
-            self.tableWidget.setSortingEnabled(True)
-
-            # Add the Qself.tableWidget to a QHBoxLayout inside a QVBoxLayout
-            hboxLayout = QHBoxLayout()
-            hboxLayout.addWidget(self.tableWidget)
-            vboxLayout = QVBoxLayout()
-            vboxLayout.addLayout(hboxLayout)
-            self.ui.tabWidget.widget(sh_num).setLayout(vboxLayout)
-
-            # Change tabs name
-            self.ui.tabWidget.setTabText(sh_num, self.wb.sheetnames[sh_num])
-
-            # set value of table from excel file
-            headers = None
-            for i, row in enumerate(self.wb[sheet_name].iter_rows(values_only=True)):
-                # if all entries in the row are None or empty, skip the row
-                if all(
-                    value is None
-                    or value == "BKP Solicitors Client Data"
-                    or str(value).strip() == ""
-                    for value in row
-                ):
-                    continue  # skip this row
-                if headers is None:  # if headers haven't been set yet
-                    headers = [
-                        str(value) for value in row
-                    ]  # use this row as the headers
-                    self.tableWidget.setHorizontalHeaderLabels(
-                        headers
-                    )  # set the headers
-                    continue  # skip the rest of this iteration
-                for j, value in enumerate(row):
-                    self.tableWidget.setItem(i, j, QTableWidgetItem(str(value)))
-
-            # remove empty rows
-            rows_to_remove = []
-            for i in range(self.tableWidget.rowCount()):
-                if all(
-                    self.tableWidget.item(i, j) is None
-                    or self.tableWidget.item(i, j).text() == ""
-                    for j in range(self.tableWidget.columnCount())
-                ):
-                    rows_to_remove.append(i)
-            for i in reversed(rows_to_remove):
-                self.tableWidget.removeRow(i)
-
-            # resize columns to fit the contents
-            self.tableWidget.resizeColumnsToContents()
-    
-    """ Example JSON response from the server
-    {
-        "sheet1": {
-            "data": {
-                "header A": [
-                    "row 1": "value 1",
-                    "row 2": "value 2",
-                    "row 3": "value 3"
-                ],
-                "header B": [
-                    "row 1": "value 4",
-                    "row 2": "value 5",
-                    "row 3": "value 6"
-                ],
-            }
-        }
-    }
-    """
-
     def loadJsonData(self, url):
         """
         load JSON data into qt tables
@@ -277,17 +168,17 @@ class MainWindow(QMainWindow):
         # show data of JSON in qt table
         for sh_num, sheet in enumerate(sheets):
             # Create a new QTableWidget for this tab
-            self.tableWidget = QTableWidget()
-            self.tableWidget.setRowCount(network.get_row_count(json_data, sheet))
-            self.tableWidget.setColumnCount(network.get_column_count(json_data, sheet)-1)
+            tableWidget = QTableWidget()
+            tableWidget.setRowCount(network.get_row_count(json_data, sheet))
+            tableWidget.setColumnCount(network.get_column_count(json_data, sheet)-1)
             # Enable sorting
-            self.tableWidget.setSortingEnabled(True)
+            tableWidget.setSortingEnabled(True)
             # set default sorting by first column
-            # self.tableWidget.sortItems(0)
+            # tableWidget.sortItems(0)
 
-            # Add the Qself.tableWidget to a QHBoxLayout inside a QVBoxLayout
+            # Add the QtableWidget to a QHBoxLayout inside a QVBoxLayout
             hboxLayout = QHBoxLayout()
-            hboxLayout.addWidget(self.tableWidget)
+            hboxLayout.addWidget(tableWidget)
             vboxLayout = QVBoxLayout()
             vboxLayout.addLayout(hboxLayout)
             self.ui.tabWidget.widget(sh_num).setLayout(vboxLayout)
@@ -299,12 +190,12 @@ class MainWindow(QMainWindow):
             headers = network.get_headers(json_data, sheet)
             if "row" in headers:
                 headers.remove("row")
-            self.tableWidget.setHorizontalHeaderLabels(headers)
+            tableWidget.setHorizontalHeaderLabels(headers)
             
             # sort the data in each sheet by the Sr_No column
 
-            for i in range(self.tableWidget.rowCount()):
-                for j in range(self.tableWidget.columnCount()):
+            for i in range(tableWidget.rowCount()):
+                for j in range(tableWidget.columnCount()):
                     headers = list(headers)
                     cell_data = network.get_data_from_cell(json_data, sheet, i, headers[j])
                     # if cell_data is float then convert it to int
@@ -318,28 +209,30 @@ class MainWindow(QMainWindow):
                             cell_data = int(cell_data)
                     # Skip setting the item if the header is "row"
                     if headers[j] != "row":
-                        self.tableWidget.setItem(i, j, QTableWidgetItem(str(cell_data)))
+                        tableWidget.setItem(i, j, QTableWidgetItem(str(cell_data)))
             
             # resize columns to fit the contents
-            self.tableWidget.resizeColumnsToContents()
-    
+            tableWidget.resizeColumnsToContents()
+            # on cell change print the changed cell
+            tableWidget.cellChanged.connect(self.handleCellChanged)
+
     def addSheetToTabs(self, sheet_name, data):
         # Create a new tab
         tab = QWidget()
         tab.setObjectName("tab")
         self.ui.tabWidget.addTab(tab, "")
         # Create a new QTableWidget for this tab
-        self.tableWidget = QTableWidget()
-        self.tableWidget.setRowCount(len(data[next(iter(data))]))
-        self.tableWidget.setColumnCount(len(data))
+        tableWidget = QTableWidget()
+        tableWidget.setRowCount(len(data[next(iter(data))]))
+        tableWidget.setColumnCount(len(data))
         # Enable sorting
-        self.tableWidget.setSortingEnabled(True)
+        tableWidget.setSortingEnabled(True)
         # set default sorting by first column
-        self.tableWidget.sortItems(0)
+        tableWidget.sortItems(0)
 
-        # Add the Qself.tableWidget to a QHBoxLayout inside a QVBoxLayout
+        # Add the QtableWidget to a QHBoxLayout inside a QVBoxLayout
         hboxLayout = QHBoxLayout()
-        hboxLayout.addWidget(self.tableWidget)
+        hboxLayout.addWidget(tableWidget)
         vboxLayout = QVBoxLayout()
         vboxLayout.addLayout(hboxLayout)
         self.ui.tabWidget.widget(self.ui.tabWidget.count() - 1).setLayout(vboxLayout)
@@ -349,16 +242,21 @@ class MainWindow(QMainWindow):
 
         # set value of table from data
         headers = list(data.keys())
-        self.tableWidget.setHorizontalHeaderLabels(headers)
+        tableWidget.setHorizontalHeaderLabels(headers)
 
         for i, row in enumerate(data):
             for j, header in enumerate(headers):
                 row_data = data[header][i]  # Get the dictionary for the current row
                 cell_data = list(row_data.values())[0]
-                self.tableWidget.setItem(i, j, QTableWidgetItem(str(cell_data)))
+                tableWidget.setItem(i, j, QTableWidgetItem(str(cell_data)))
         
         # resize columns to fit the contents
-        self.tableWidget.resizeColumnsToContents()
+        tableWidget.resizeColumnsToContents()
+    
+    def handleCellChanged(self, row, column):
+        tableWidget = self.sender()
+        cell_id = tableWidget.item(row, 0).text()
+        print(f"Row: {row}, ID: {cell_id}: {tableWidget.item(row, column).text()}")
     
     def loadReport(self, url, name):
         # Fetch the data
@@ -401,7 +299,7 @@ class MainWindow(QMainWindow):
         # open file after first time
         try:
             if self.excel_file:
-                self.tableWidget.cellChanged.disconnect(self.saveExcelData)
+                tableWidget.cellChanged.disconnect(self.saveExcelData)
         except:
             pass
 
@@ -417,7 +315,6 @@ class MainWindow(QMainWindow):
             self.excel_file = filePath
 
             # show excel data into tables
-            # self.loadExcelData()
             self.loadJsonData(URL)
 
             # connect tables to saveExcelData function
@@ -537,11 +434,11 @@ class MainWindow(QMainWindow):
         """
         try:
             for i in range(self.sheet_number):
-                self.tableWidget = self.ui.tabWidget.widget(i).findChild(QTableWidget)
+                tableWidget = self.ui.tabWidget.widget(i).findChild(QTableWidget)
                 if is_connect:
-                    self.tableWidget.cellChanged.connect(self.saveExcelData)
+                    tableWidget.cellChanged.connect(self.saveExcelData)
                 else:
-                    self.tableWidget.cellChanged.disconnect(self.saveExcelData)
+                    tableWidget.cellChanged.disconnect(self.saveExcelData)
         except Exception as e:
             print(f"have error when is_connect is {is_connect} in :{e} ")
 
