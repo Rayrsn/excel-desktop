@@ -295,30 +295,11 @@ class MainWindow(QMainWindow):
     def showAlarm(self, header, mes):
         QMessageBox.warning(self, header, mes)
 
-    def openFile(self, auto_load_file=False):
-        # open file after first time
-        try:
-            if self.excel_file:
-                tableWidget.cellChanged.disconnect(self.saveExcelData)
-        except:
-            pass
+    def openFile(self):
+        self.loadJsonData(URL)
 
-        # auto loadfile for debug
-        if auto_load_file:
-            filePath = "Law Clients.xlsm"
-        else:
-            filePath, _ = QFileDialog.getOpenFileName(
-                self, "Open File", "", "Excel Files (*.xlsx *.xlsm)"
-            )
-
-        if filePath:
-            self.excel_file = filePath
-
-            # show excel data into tables
-            self.loadJsonData(URL)
-
-            # connect tables to saveExcelData function
-            self.tableWidgetCellChange(is_connect=True)
+        # connect tables to saveExcelData function
+        # self.tableWidgetCellChange(is_connect=True)
 
     def removeEmptyColumns(self, sheet):
         columns_to_remove = []
@@ -917,7 +898,7 @@ def run():
     app = QApplication(sys.argv)
     widget = MainWindow()
     # NOTE: auto load excel file for debug
-    widget.openFile(auto_load_file=True)
+    widget.openFile()
     widget.showMaximized()
     sys.exit(app.exec())
 
