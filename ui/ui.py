@@ -47,6 +47,8 @@ from utils.btn import (
 import ui.network as network
 
 URL = "https://excel-api.fly.dev"
+DATA = {}
+
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -144,8 +146,10 @@ class MainWindow(QMainWindow):
         loading_dialog.update()
         
         # Fetch the data
+        global DATA
         try:
             json_data = network.get_data(url)
+            DATA = json_data
         except Exception as e:
             print(f"Error: {e}")
             self.showAlarm("Network error", "Failed to fetch data from the server!")
@@ -260,9 +264,11 @@ class MainWindow(QMainWindow):
     
     def loadReport(self, url, name):
         # Fetch the data
+        global DATA
         url = f"{url}/operations/{name}"
         try:
             data = network.get_data(url)
+            DATA = data
         except Exception as e:
             print(f"Error: {e}")
             self.showAlarm("Network error", "Failed to fetch data from the server!")
@@ -333,61 +339,39 @@ class MainWindow(QMainWindow):
         # Reconnect the cellChanged signal
         self.tableWidgetCellChange(is_connect=True)
 
-    def askForNewEntry(self) -> bool:
-        # Check if wb has been defined
-        if not hasattr(self, "wb"):
-            self.showAlarm("Error", "Please load an Excel file first!")
-            return False
-
+    def askForNewEntry(self, data) -> bool:
         # open a popup window for new entry
-        dialog = NewEntryDialog(self.wb, self)
+        dialog = NewEntryDialog(data, self)
         if dialog.exec():
-            selected_sheet = dialog.comboBox.currentText()
-            new_entry = {}
+            selected_sheet = dialog.comboBox.currentText().replace(" ", "_")
+            new_entry_data = {}
             for i, lineEdit in enumerate(dialog.lineEdits):
-                new_entry[
+                new_entry_data[
                     dialog.lineEditsLayout.itemAt(i).widget().placeholderText()
                 ] = lineEdit.text()
-            for entry in new_entry:
+            for entry in new_entry_data:
                 # fix showing None value cell
-                if new_entry[entry].strip() == "":
-                    new_entry[entry] = None
-            rows = list(self.wb[selected_sheet].iter_rows(values_only=True))
-            for i in reversed(range(len(rows))):
-                # skip deleting logo
-                # NOTE: index 16 is header
-                if selected_sheet == "Opening File" and i == 16:
-                    break
-                if all(cell is None or str(cell).strip() == "" for cell in rows[i]):
-                    self.wb[selected_sheet].delete_rows(i + 1)
-                # else:
-                # print(rows[i])
+                if new_entry_data[entry].strip() == "":
+                    new_entry_data[entry] = None
 
-            if not self.first_run_entry:
-                # Disconnect the cellChanged signal
-                self.tableWidgetCellChange(is_connect=False)
+            print(new_entry_data)
 
-            # save entry data into selected sheet
-            self.wb[selected_sheet].append(list(new_entry.values()))
-            self.wb.save(self.excel_file)
+            new_entry = {
+                "sheetname": selected_sheet,
+                "data": new_entry_data
+            }
 
-            # Get the tableWidget of the tab that corresponds to the selected sheet
-            selected_tab_index = self.wb.sheetnames.index(selected_sheet)
-            selected_tab = self.ui.tabWidget.widget(selected_tab_index)
-            tableWidget = selected_tab.findChild(QTableWidget)
+            # Send a POST request to the server with the new entry data
+            response = network.post_data(
+                f"{URL}/create", new_entry
+            )
 
-            # update the table without reloading the file
-            tableWidget.setRowCount(tableWidget.rowCount() + 1)
-            for i, value in enumerate(new_entry.values()):
-                tableWidget.setItem(
-                    tableWidget.rowCount() - 1, i, QTableWidgetItem(str(value))
-                )
-
-            # Reconnect the cellChanged signal
-            self.tableWidgetCellChange(is_connect=True)
-
-            self.first_run_entry = False
-            return True
+            if response.status_code == 200:
+                showAlarm("Success", "New entry added successfully!")
+                return True
+            else:
+                showAlarm("Error", "Failed to add new entry!")
+                return False
         return False
 
     def genDocsBtn(self):
@@ -401,7 +385,9 @@ class MainWindow(QMainWindow):
             self.showAlarm("Error", "Word documents generation failed!")
 
     def showNewEntryDialog(self):
-        if not self.askForNewEntry():
+        global DATA
+        data = DATA
+        if not self.askForNewEntry(data):
             return
         print("New entry added")
 
@@ -443,7 +429,7 @@ class MainWindow(QMainWindow):
         self.close()
 
 class NewEntryDialog(QDialog):
-    def __init__(self, wb, parent=None):
+    def __init__(self, data, parent=None):
         super().__init__(parent)
         self.setWindowTitle("New Entry")
 
@@ -482,6 +468,12 @@ class NewEntryDialog(QDialog):
             }
         """
         )
+        
+        
+        headers = list(data.get("headers"))
+        data = data.get("data")
+        
+        print(headers, "\n\n\n\n", data)
 
         # Set the size of the dialog to be 3/4 of the size of the parent
         if parent is not None:
@@ -490,7 +482,7 @@ class NewEntryDialog(QDialog):
         self.layout = QVBoxLayout(self)
 
         self.comboBox = QComboBox(self)
-        self.comboBox.addItems(wb.sheetnames)
+        self.comboBox.addItems(headers)
         self.comboBox.setCurrentText(
             parent.ui.tabWidget.tabText(parent.ui.tabWidget.currentIndex())
         )
@@ -501,10 +493,10 @@ class NewEntryDialog(QDialog):
         self.layout.addLayout(self.lineEditsLayout)
 
         self.lineEdits = []
-        self.updateLineEdits(wb[self.comboBox.currentText()])
+        self.updateLineEdits(data[self.comboBox.currentText()])
 
         self.comboBox.currentIndexChanged.connect(
-            lambda: self.updateLineEdits(wb[self.comboBox.currentText()])
+            lambda: self.updateLineEdits(data[self.comboBox.currentText()])
         )
 
         # Add a stretchable space
@@ -523,13 +515,8 @@ class NewEntryDialog(QDialog):
             lineEdit.deleteLater()
         self.lineEdits.clear()
 
-        # Find the first non-empty row
-        for row in sheet.iter_rows(values_only=True):
-            if all(cell is not None and str(cell).strip() != "" for cell in row):
-                columns = row
-                break
-        else:
-            columns = []
+        # Get the column names from the first item in the data list
+        columns = list(sheet[0].keys()) if sheet else []
 
         # Add new QLineEdit widgets
         for i, column in enumerate(columns):
