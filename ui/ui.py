@@ -56,13 +56,16 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.ui.exitbutton.clicked.connect(self.closeApplication)
-        self.ui.importbutton.clicked.connect(self.openFile)
+        # DISABLE IMPORT BUTTON ###################
+        # self.ui.importbutton.clicked.connect(self.openFile)
+        self.ui.refreshbutton.clicked.connect(lambda: self.loadJsonData(URL))
         self.ui.exportbutton.clicked.connect(self.genDocsBtn)
         self.ui.newentrybutton.clicked.connect(self.showNewEntryDialog)
         self.ui.operationsbutton.clicked.connect(self.showOperationDialog)
 
         self.ui.exitbutton.setCursor(Qt.PointingHandCursor)
-        self.ui.importbutton.setCursor(Qt.PointingHandCursor)
+        # DISABLE IMPORT BUTTON ###################
+        # self.ui.importbutton.setCursor(Qt.PointingHandCursor)
         self.ui.exportbutton.setCursor(Qt.PointingHandCursor)
         self.ui.newentrybutton.setCursor(Qt.PointingHandCursor)
         self.ui.refreshbutton.setCursor(Qt.PointingHandCursor)
@@ -108,6 +111,8 @@ class MainWindow(QMainWindow):
             }
         """
         )
+        # DISABLE IMPORT BUTTON ###################
+        self.ui.importbutton.setStyleSheet("background-color: gray;") 
 
         # clear existing tabs
         self.ui.tabWidget.clear()
@@ -176,8 +181,8 @@ class MainWindow(QMainWindow):
 
             # set value of table from JSON data
             headers = network.get_headers(json_data, sheet)
-            if "row" in headers:
-                headers.remove("row")
+            if "id" in headers:
+                headers.remove("id")
             tableWidget.setHorizontalHeaderLabels(headers)
             
             # sort the data in each sheet by the Sr_No column
@@ -195,8 +200,8 @@ class MainWindow(QMainWindow):
                         # if in column sr no, then convert it to int
                         if headers[j] == "Sr_No":
                             cell_data = int(cell_data)
-                    # Skip setting the item if the header is "row"
-                    if headers[j] != "row":
+                    # Skip setting the item if the header is "id"
+                    if headers[j] != "id":
                         tableWidget.setItem(i, j, QTableWidgetItem(str(cell_data)))
             
             # resize columns to fit the contents
@@ -268,11 +273,32 @@ class MainWindow(QMainWindow):
     def handleCellChanged(self, row, column):
         tableWidget = self.sender()
         cell_id = tableWidget.item(row, 0).text()
-        print(f"Row: {row}, ID: {cell_id}: {tableWidget.item(row, column).text()}")
+        
+        # send a post request to the server to update the cell
+        sheet_name = self.ui.tabWidget.tabText(self.ui.tabWidget.currentIndex())
+        headers = network.get_headers(DATA, sheet_name)
+        if "id" in headers:
+            headers.remove("id")
+        
+        data = {
+            "sheetname": sheet_name,
+            "data": {headers[j]: tableWidget.item(row, j).text() for j in range(tableWidget.columnCount())}
+        }
+        
+        response = network.post_data(
+            f"{URL}/update/", data
+        )
+        
+        if response.status_code == 200:
+            self.loadJsonData(URL)
+        else:
+            self.showAlarm("Error", "Failed to update the cell!")
+            print(response.text)
+        
     
     def loadReport(self, url, name):
         # Fetch the data
-        global DATA
+        # global DATA # REMOVED BECAUSE OPERATIONS WAS OVERWRITING GLOBAL DATA
         url = f"{url}/operations/{name}"
         try:
             data = network.get_data(url)
@@ -308,6 +334,9 @@ class MainWindow(QMainWindow):
     
     def showAlarm(self, header, mes):
         QMessageBox.warning(self, header, mes)
+
+    def showSuccess(self, header, mes):
+        QMessageBox.information(self, header, mes)
 
     def openFile(self):
         self.loadJsonData(URL)
@@ -362,24 +391,27 @@ class MainWindow(QMainWindow):
                 if new_entry_data[entry].strip() == "":
                     new_entry_data[entry] = None
 
-            print(new_entry_data)
 
             new_entry = {
-                "sheetname": selected_sheet,
+                "sheetname": selected_sheet.replace("_", " "),
                 "data": new_entry_data
             }
 
+            print(new_entry)
             # Send a POST request to the server with the new entry data
             response = network.post_data(
-                f"{URL}/create", new_entry
+                f"{URL}/create/", new_entry
             )
 
             if response.status_code == 200:
-                self.showAlarm("Success", "New entry added successfully!")
+                self.showSuccess("Success", "New entry added successfully!")
+                # refresh data
+                self.loadJsonData(URL)
                 return True
             else:
                 self.showAlarm("Error", "Failed to add new entry!")
                 return False
+
         return False
 
     def genDocsBtn(self):
@@ -537,6 +569,84 @@ class NewEntryDialog(QDialog):
 
         # Add the new QGridLayout to the dialog's layout
         self.layout.insertLayout(1, self.lineEditsLayout)
+
+class DeleteEntryDialog(QDialog):
+    def __init__(self, data, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Delete Entry")
+
+        self.setStyleSheet(
+            """
+            QDialog {
+                background-color: #f0f0f0;
+            }
+
+            QLabel {
+                font-size: 14px;
+            }
+
+            QLineEdit, QComboBox, QDateEdit {
+                background-color: #fff;
+                border: 1px solid #999;
+                padding: 5px;
+            }
+
+            QPushButton {
+                background-color: #007BFF;
+                color: #fff;
+                border: none;
+                padding: 5px 10px;
+                margin: 10px;
+            }
+
+            QPushButton:hover {
+                background-color: #0056b3;
+            }
+            
+            QComboBox:!editable, QComboBox::drop-down:editable {
+                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                            stop: 0 #E1E1E1, stop: 0.4 #DDDDDD,
+                                            stop: 0.5 #D8D8D8, stop: 1.0 #D3D3D3);
+            }
+        """
+        )
+        
+        main_data = data
+        headers = list(data.get("headers"))
+        data = data.get("data")
+    
+        # Set the size of the dialog to be 3/4 of the size of the parent
+        if parent is not None:
+            self.resize(parent.size() * 0.5)
+
+        self.layout = QVBoxLayout(self)
+
+        self.comboBox = QComboBox(self)
+        self.comboBox.addItems(headers)
+        self.comboBox.setCurrentText(
+            parent.ui.tabWidget.tabText(parent.ui.tabWidget.currentIndex())
+        )
+
+        self.layout.addWidget(self.comboBox)
+
+        self.lineEditsLayout = QGridLayout()
+        self.layout.addLayout(self.lineEditsLayout)
+
+        self.lineEdits = []
+        self.updateLineEdits(main_data.get("headers")[self.comboBox.currentText()])
+        
+
+        self.comboBox.currentIndexChanged.connect(
+            lambda: self.updateLineEdits(main_data.get("headers")[self.comboBox.currentText()])
+        )
+
+        # Add a stretchable space
+        self.layout.addStretch(1)
+
+        self.button = QPushButton("Submit", self)
+        # change size of button
+        self.button.setMinimumSize(100, 60)
+        self.button.clicked.connect
 
 class OperationsDialog(QDialog):
     def __init__(self, parent, url):
