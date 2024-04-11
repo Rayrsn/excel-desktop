@@ -66,15 +66,30 @@ def people_sheet_data(wb, sheet, row):
     return people_data
 
 
-def get_all_people_data(wb, sheet):
-    """
-    return all people data
-    """
-    list_of_data = []
-    for row in range(18, last_row(wb, sheet)):
-        data = people_sheet_data(wb, sheet, row)
-        list_of_data.append(data)
-    return list_of_data
+def get_all_people_data(client_data):
+  """
+  Extracts client data from a list of dictionaries.
+
+  Args:
+      client_data (list): A list of dictionaries containing client data.
+
+  Returns:
+      list: A list of dictionaries containing client data formatted for word generation.
+  """
+  all_data = []
+  for client in client_data:
+    data = {
+      "email": client["Email"],
+      "file_no": client["File_No"],
+      "date_opened": client["Date_Opened"],
+      # ... Extract all other relevant data fields ...
+      "matter_type": client["Matter_Type"],
+      "m_3rd_party": client["_3rd_Party"],
+      "initial": client["Initial"],
+    }
+    all_data.append(data)
+  return all_data
+
 
 
 if __name__ == "__main__":
