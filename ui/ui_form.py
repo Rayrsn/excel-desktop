@@ -49,6 +49,12 @@ class Ui_MainWindow(object):
         
         self.horizontalLayout.addWidget(self.newentrybutton)
         
+        self.deleteentrybutton = QPushButton(self.centralwidget)
+        self.deleteentrybutton.setObjectName(u"deleteentrybutton")
+        self.deleteentrybutton.setMinimumSize(QSize(100, 40))
+        
+        self.horizontalLayout.addWidget(self.deleteentrybutton)
+        
         self.refreshbutton = QPushButton(self.centralwidget)
         self.refreshbutton.setObjectName(u"refreshbutton")
         self.refreshbutton.setMinimumSize(QSize(100, 40))
@@ -124,6 +130,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"BKP Solicitors", None))
         self.importbutton.setText(QCoreApplication.translate("MainWindow", u"Import", None))
         self.newentrybutton.setText(QCoreApplication.translate("MainWindow", u"New Entry", None))
+        self.deleteentrybutton.setText(QCoreApplication.translate("MainWindow", u"Delete Entry", None))
         self.refreshbutton.setText(QCoreApplication.translate("MainWindow", u"Refresh Data", None))
         self.exportbutton.setText(QCoreApplication.translate("MainWindow", u"Export to Word Document", None))
         self.operationsbutton.setText(QCoreApplication.translate("MainWindow", u"Operations", None))

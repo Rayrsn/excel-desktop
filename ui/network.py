@@ -1,74 +1,13 @@
 import requests
 
-# Example JSON response from the server
-json =""" 
-{
-    "data": {
-        "Opening_File": [
-            {
-                "id": 1,
-                "Sr_No": "13",
-                "Office": "joe",
-                "Matter_Type": "joe",
-                "Email": "joe@joe.com",
-                "Previous_Number": "joe",
-                "CRIME": "joe",
-                "File_No": "joe",
-                "Date_Opened": null,
-                "Fee_Earner": null,
-                "Clients_Surname": null,
-                "Clients_Forename": null,
-                "Clients_Title": null,
-                "Marital_Status": null,
-                "Letters_to_Home_Address": null,
-                "Address": null,
-                "City": null,
-                "Postcode": null,
-                "Postal_Address_if_Different": null,
-                "Postal_Address_Postcode": null,
-                "Home_Telephone": null,
-                "Work_Telephone": null,
-                "Mobile_Number": null,
-                "Occupation": null,
-                "Date_of_Birth": null,
-                "Ethnicity": null,
-                "HMP": null,
-                "Prison_Number": null,
-                "National_Insurance_Number": null,
-                "_3rd_Party": null,
-                "Initial": null,
-                "Conflict": null,
-                "Date": null,
-                "Costs_Information": null,
-                "Cost_Estimate": null,
-                "Charge_Basis": null,
-                "Court": null,
-                "Legal_Aid": null
-            }
-        ],
-        "Police_Station": [],
-        "List_of_Letters": [],
-        "Bail": [],
-        "Magistrates_Merge": [],
-        "Magistrates": [],
-        "Crown_Court_Merge": [],
-        "Crown_Court": [],
-        "Road_Traffic": [],
-        "Appeals": [],
-        "Appeals_Magistrates": [],
-        "Appeals_Crown_Court": [],
-        "Appeals_Road_Traffic": [],
-        "PoliceStation_to_Magistrates": [],
-        "Magistrates_to_Crown_Court_1": [],
-        "Magistrates_to_Crown_Court_2": []
-    }
-}
-"""
-
 ## GET REQUESTS ##
 
 def get_data(url):
-    response = requests.get(url)
+    try:
+        response = requests.get(url, timeout=5)
+    except Exception as e:
+        print(e)
+        return None
     return response.json()
 
 def get_sheets(json_data):

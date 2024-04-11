@@ -27,7 +27,7 @@ from PySide6.QtWidgets import (
     QProgressBar,
 )
 
-from PySide6.QtGui import QPixmap, QFont
+from PySide6.QtGui import QPixmap, QFont, QIcon
 from PySide6.QtCore import Qt, QThread, Signal
 
 from ui.ui_form import Ui_MainWindow
@@ -55,19 +55,28 @@ class MainWindow(QMainWindow):
         super().__init__(parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        
+        win_icon = QIcon()
+        if hasattr(sys, "_MEIPASS"):
+            win_icon.addFile(sys._MEIPASS + "/bkp_logo.ico")
+        else:
+            win_icon.addFile('bkp_logo.ico')
+        self.setWindowIcon(win_icon)
+        
         self.ui.exitbutton.clicked.connect(self.closeApplication)
         # DISABLE IMPORT BUTTON ###################
         # self.ui.importbutton.clicked.connect(self.openFile)
         self.ui.refreshbutton.clicked.connect(lambda: self.loadJsonData(URL))
-        self.ui.exportbutton.clicked.connect(self.genDocsBtn)
+        self.ui.exportbutton.clicked.connect(lambda: self.genDocsBtn(DATA))
         self.ui.newentrybutton.clicked.connect(self.showNewEntryDialog)
+        self.ui.deleteentrybutton.clicked.connect(self.showDeleteEntryDialog)
         self.ui.operationsbutton.clicked.connect(self.showOperationDialog)
-
         self.ui.exitbutton.setCursor(Qt.PointingHandCursor)
         # DISABLE IMPORT BUTTON ###################
         # self.ui.importbutton.setCursor(Qt.PointingHandCursor)
         self.ui.exportbutton.setCursor(Qt.PointingHandCursor)
         self.ui.newentrybutton.setCursor(Qt.PointingHandCursor)
+        self.ui.deleteentrybutton.setCursor(Qt.PointingHandCursor)
         self.ui.refreshbutton.setCursor(Qt.PointingHandCursor)
         self.ui.operationsbutton.setCursor(Qt.PointingHandCursor)
         self.first_run_entry = True
@@ -279,6 +288,9 @@ class MainWindow(QMainWindow):
         headers = network.get_headers(DATA, sheet_name)
         if "id" in headers:
             headers.remove("id")
+        # replace ID with row
+        index = headers.index("ID")
+        headers[index] = "row"
         
         data = {
             "sheetname": sheet_name,
@@ -414,8 +426,8 @@ class MainWindow(QMainWindow):
 
         return False
 
-    def genDocsBtn(self):
-        if gen_docs(self.excel_file):
+    def genDocsBtn(self, data):
+        if gen_docs(data):
             QMessageBox.information(
                 self,
                 "Success",
@@ -433,6 +445,10 @@ class MainWindow(QMainWindow):
 
     def showOperationDialog(self):
         dialog = OperationsDialog(self, URL)
+        dialog.exec()
+    
+    def showDeleteEntryDialog(self):
+        dialog = DeleteEntryDialog(self, data=DATA)
         dialog.exec()
 
     def tableWidgetCellChange(self, is_connect: bool):
@@ -555,7 +571,7 @@ class NewEntryDialog(QDialog):
         self.lineEdits.clear()
 
         # Filter out "id" and "row" columns
-        columns = [column for column in columns if column not in ["id", "row"]]
+        columns = [column for column in columns if column not in ["id", "row", "ID"]]
 
         # Create a new QGridLayout
         self.lineEditsLayout = QGridLayout()
@@ -569,9 +585,8 @@ class NewEntryDialog(QDialog):
 
         # Add the new QGridLayout to the dialog's layout
         self.layout.insertLayout(1, self.lineEditsLayout)
-
 class DeleteEntryDialog(QDialog):
-    def __init__(self, data, parent=None):
+    def __init__(self, parent=None, data=None):
         super().__init__(parent)
         self.setWindowTitle("Delete Entry")
 
@@ -620,33 +635,82 @@ class DeleteEntryDialog(QDialog):
             self.resize(parent.size() * 0.5)
 
         self.layout = QVBoxLayout(self)
+        self.layout.setContentsMargins(10, 5, 10, 10)  # Reduce the top margin
 
-        self.comboBox = QComboBox(self)
-        self.comboBox.addItems(headers)
-        self.comboBox.setCurrentText(
-            parent.ui.tabWidget.tabText(parent.ui.tabWidget.currentIndex())
-        )
+        # Add QLabel for sheet selection
+        self.sheetLabel = QLabel("Select Sheet:", self)
+        self.layout.addWidget(self.sheetLabel)
 
-        self.layout.addWidget(self.comboBox)
+        # Add QComboBox for sheet selection
+        self.sheetComboBox = QComboBox(self)
+        self.sheetComboBox.addItems(headers)
+        self.layout.addWidget(self.sheetComboBox)
 
-        self.lineEditsLayout = QGridLayout()
-        self.layout.addLayout(self.lineEditsLayout)
+        # Add QLabel for row number
+        self.rowLabel = QLabel("ID Number:", self)
+        self.layout.addWidget(self.rowLabel)
 
-        self.lineEdits = []
-        self.updateLineEdits(main_data.get("headers")[self.comboBox.currentText()])
+        # Add QLineEdit for row number
+        self.rowLineEdit = QLineEdit(self)
+        self.rowLineEdit.setPlaceholderText("Enter row number")
+        self.layout.addWidget(self.rowLineEdit)
         
-
-        self.comboBox.currentIndexChanged.connect(
-            lambda: self.updateLineEdits(main_data.get("headers")[self.comboBox.currentText()])
-        )
-
         # Add a stretchable space
         self.layout.addStretch(1)
-
-        self.button = QPushButton("Submit", self)
-        # change size of button
+        
+        # Add QPushButton for submitting the form
+        self.button = QPushButton("Delete", self)
         self.button.setMinimumSize(100, 60)
-        self.button.clicked.connect
+        self.button.clicked.connect(lambda: self.deleteEntry(parent, data))
+        self.layout.addWidget(self.button)
+        
+        # auto resize the dialog
+        self.adjustSize()
+
+
+    def deleteEntry(self, parent, data):
+        # Get the selected sheet name
+        sheet_name = self.sheetComboBox.currentText()
+        
+        # Get the row number
+        row_number = self.rowLineEdit.text()
+        
+        # Get the data of the selected sheet
+        sheet_data = data.get(sheet_name)
+        
+        # Check if the row number is valid
+        if not row_number.isdigit():
+            parent.showAlarm("Error", "Please enter a valid row number!")
+            return
+        
+        # Convert the row number to an integer
+        row_number = int(row_number)
+        
+        # Check if the row number is within the valid range
+        if row_number < 0 or row_number > len(sheet_data)+1:
+            parent.showAlarm("Error", "Row number out of range!")
+            return
+                
+        request_data = {
+            "sheetname": sheet_name,
+            "row": row_number
+        }
+
+        # Send a DELETE request to the server to delete the entry
+        response = network.post_data(
+            f"{URL}/delete/", request_data
+        )
+        
+        if response.status_code == 200:
+            parent.showSuccess("Success", "Entry deleted successfully!")
+            # Refresh the data
+            parent.loadJsonData(URL)
+        else:
+            parent.showAlarm("Error", "Failed to delete the entry!")
+            print(response.text)
+        
+        # Close the dialog
+        self.close()
 
 class OperationsDialog(QDialog):
     def __init__(self, parent, url):
