@@ -114,7 +114,7 @@ def get_column_count(json_data, sheet):
 def post_data(url, data):
     # Sends a POST request to the server with the provided data
     response = requests.post(url, json=data)
-    return response.json()
+    return response
 
 
 ## OPERATIONS ##

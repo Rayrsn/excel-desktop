@@ -367,10 +367,10 @@ class MainWindow(QMainWindow):
             )
 
             if response.status_code == 200:
-                showAlarm("Success", "New entry added successfully!")
+                self.showAlarm("Success", "New entry added successfully!")
                 return True
             else:
-                showAlarm("Error", "Failed to add new entry!")
+                self.showAlarm("Error", "Failed to add new entry!")
                 return False
         return False
 
@@ -469,10 +469,10 @@ class NewEntryDialog(QDialog):
         """
         )
         
-        
+        main_data = data
         headers = list(data.get("headers"))
         data = data.get("data")
-        
+    
         # Set the size of the dialog to be 3/4 of the size of the parent
         if parent is not None:
             self.resize(parent.size() * 0.5)
@@ -491,10 +491,11 @@ class NewEntryDialog(QDialog):
         self.layout.addLayout(self.lineEditsLayout)
 
         self.lineEdits = []
-        self.updateLineEdits(data[self.comboBox.currentText()])
+        self.updateLineEdits(main_data.get("headers")[self.comboBox.currentText()])
+        
 
         self.comboBox.currentIndexChanged.connect(
-            lambda: self.updateLineEdits(data[self.comboBox.currentText()])
+            lambda: self.updateLineEdits(main_data.get("headers")[self.comboBox.currentText()])
         )
 
         # Add a stretchable space
@@ -506,15 +507,12 @@ class NewEntryDialog(QDialog):
         self.button.clicked.connect(self.accept)
         self.layout.addWidget(self.button)
 
-    def updateLineEdits(self, sheet):
+    def updateLineEdits(self, columns):
         # Remove existing QLineEdit widgets
         for lineEdit in self.lineEdits:
             self.lineEditsLayout.removeWidget(lineEdit)
             lineEdit.deleteLater()
         self.lineEdits.clear()
-
-        # Get the column names from the first item in the data list
-        columns = list(sheet[0].keys()) if sheet else []
 
         # Filter out "id" and "row" columns
         columns = [column for column in columns if column not in ["id", "row"]]
