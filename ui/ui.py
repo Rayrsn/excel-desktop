@@ -473,8 +473,6 @@ class NewEntryDialog(QDialog):
         headers = list(data.get("headers"))
         data = data.get("data")
         
-        print(headers, "\n\n\n\n", data)
-
         # Set the size of the dialog to be 3/4 of the size of the parent
         if parent is not None:
             self.resize(parent.size() * 0.5)
@@ -518,13 +516,21 @@ class NewEntryDialog(QDialog):
         # Get the column names from the first item in the data list
         columns = list(sheet[0].keys()) if sheet else []
 
+        # Filter out "id" and "row" columns
+        columns = [column for column in columns if column not in ["id", "row"]]
+
+        # Create a new QGridLayout
+        self.lineEditsLayout = QGridLayout()
+
         # Add new QLineEdit widgets
         for i, column in enumerate(columns):
             lineEdit = QLineEdit(self)
             lineEdit.setPlaceholderText(column)
-            self.lineEditsLayout.addWidget(lineEdit, i // 3, i % 3)
+            self.lineEditsLayout.addWidget(lineEdit, i // 4, i % 4)
             self.lineEdits.append(lineEdit)
 
+        # Add the new QGridLayout to the dialog's layout
+        self.layout.insertLayout(1, self.lineEditsLayout)
 
 class OperationsDialog(QDialog):
     def __init__(self, parent, url):
