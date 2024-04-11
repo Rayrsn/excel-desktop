@@ -134,31 +134,15 @@ class MainWindow(QMainWindow):
         hboxLayout.addWidget(textLabel)
         tab.setLayout(hboxLayout)
 
-    def loadJsonData(self, url):
-        """
-        load JSON data into qt tables
-        """
-        
-        # make a loading dialog
-        loading_dialog = LoadingDialog(self)
-        loading_dialog.show()
-        loading_dialog.repaint()
-        loading_dialog.update()
-        
-        # Fetch the data
+    def loadJsonDataFinished(self, data):
         global DATA
-        try:
-            json_data = network.get_data(url)
-            DATA = json_data
-        except Exception as e:
-            print(f"Error: {e}")
-            self.showAlarm("Network error", "Failed to fetch data from the server!")
-            return
-
+        DATA = data
+        json_data = data
+        
         sheets = network.get_sheets(json_data)
 
         # close loading dialog
-        loading_dialog.close()
+        self.loading_dialog.close()
         
         # clear existing tabs
         self.ui.tabWidget.clear()
@@ -219,6 +203,30 @@ class MainWindow(QMainWindow):
             tableWidget.resizeColumnsToContents()
             # on cell change print the changed cell
             tableWidget.cellChanged.connect(self.handleCellChanged)
+
+    def loadJsonData(self, url):
+        """
+        load JSON data into qt tables
+        """
+        
+        # make a loading dialog
+        self.loading_dialog = LoadingDialog(self)
+    
+        self.fetchDataThread = FetchDataThread(url)
+        self.fetchDataThread.dataReady.connect(self.loadJsonDataFinished)
+        self.fetchDataThread.start()
+        
+        self.loading_dialog.exec()
+        
+        # Fetch the data
+        global DATA
+        try:
+            json_data = network.get_data(url)
+            DATA = json_data
+        except Exception as e:
+            print(f"Error: {e}")
+            self.showAlarm("Network error", "Failed to fetch data from the server!")
+            return
 
     def addSheetToTabs(self, sheet_name, data):
         # Create a new tab
@@ -607,6 +615,17 @@ class OperationsDialog(QDialog):
         self.stage_reports_button.clicked.connect(
             lambda: (parent.loadReport(url, "stage"), self.accept())
         )
+
+class FetchDataThread(QThread):
+    dataReady = Signal(object)
+
+    def __init__(self, url):
+        super().__init__()
+        self.url = url
+
+    def run(self):
+        data = network.get_data(self.url)
+        self.dataReady.emit(data)
 
 
 class LoadingDialog(QDialog):
