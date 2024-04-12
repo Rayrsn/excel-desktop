@@ -688,7 +688,7 @@ class DeleteEntryDialog(QDialog):
         
         # Check if the row number is within the valid range
         if row_number < 0 or row_number > len(sheet_data)+1:
-            parent.showAlarm("Error", "Row number out of range!")
+            parent.showAlarm("Error", "ID number out of range!")
             return
                 
         request_data = {
