@@ -677,20 +677,23 @@ class DeleteEntryDialog(QDialog):
         
         # Get the data of the selected sheet
         sheet_data = data.get(sheet_name)
-        
+
+        # Extract all IDs from the sheet data
+        ids = [entry['ID'] for entry in sheet_data]
+
         # Check if the row number is valid
         if not row_number.isdigit():
-            parent.showAlarm("Error", "Please enter a valid row number!")
+            parent.showAlarm("Error", "Please enter a valid ID number!")
             return
-        
+
         # Convert the row number to an integer
         row_number = int(row_number)
-        
-        # Check if the row number is within the valid range
-        if row_number < 0 or row_number > len(sheet_data)+1:
-            parent.showAlarm("Error", "ID number out of range!")
+
+        # Check if the ID exists in the list of IDs
+        if row_number not in ids:
+            parent.showAlarm("Error", "ID number does not exist!")
             return
-                
+
         request_data = {
             "sheetname": sheet_name,
             "row": row_number
