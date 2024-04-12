@@ -12,11 +12,18 @@ def get_data(url):
 
 def get_sheets(json_data):
     # Returns a list of all the sheet names
+    # if none try getting the data
+    if json_data is None or 'data' not in json_data:
+        json_data = get_data(json_data)
+    if json_data is None or 'data' not in json_data:
+        return None
     return list(json_data['data'].keys())
 
 def get_headers(json_data, sheet):
     # Returns a list of all the headers in the sheet
     # the headers are in ['data']['headers']
+    if json_data is None or 'headers' not in json_data:
+        return None
     return json_data['headers'][sheet]
 
 def get_data_from_column(json_data, sheet, column):

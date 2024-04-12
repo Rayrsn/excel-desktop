@@ -392,7 +392,7 @@ class MainWindow(QMainWindow):
         # open a popup window for new entry
         dialog = NewEntryDialog(data, self)
         if dialog.exec():
-            selected_sheet = dialog.comboBox.currentText().replace(" ", "_")
+            selected_sheet = dialog.comboBox.currentText()
             new_entry_data = {}
             for i, lineEdit in enumerate(dialog.lineEdits):
                 new_entry_data[
@@ -405,7 +405,7 @@ class MainWindow(QMainWindow):
 
 
             new_entry = {
-                "sheetname": selected_sheet.replace("_", " "),
+                "sheetname": selected_sheet,
                 "data": new_entry_data
             }
 
@@ -698,6 +698,7 @@ class DeleteEntryDialog(QDialog):
             "sheetname": sheet_name,
             "row": row_number
         }
+        print(request_data)
 
         # Send a DELETE request to the server to delete the entry
         response = network.post_data(
