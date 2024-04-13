@@ -208,7 +208,10 @@ class MainWindow(QMainWindow):
                             cell_data = int(float(cell_data))
                         # if in column sr no, then convert it to int
                         if headers[j] == "Sr_No":
-                            cell_data = int(cell_data)
+                            try:
+                                cell_data = int(cell_data)
+                            except Exception as e:
+                                print(f"Error in row {i} and column {j}, cell data: {cell_data}: {e}")
                     # Skip setting the item if the header is "id"
                     if headers[j] != "id":
                         tableWidget.setItem(i, j, QTableWidgetItem(str(cell_data)))
