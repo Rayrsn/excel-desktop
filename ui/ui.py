@@ -45,6 +45,7 @@ from utils.btn import (
 )
 
 import ui.network as network
+import os
 
 if os.environ.get("SERVER_URL"):
     URL = os.environ.get("SERVER_URL")
