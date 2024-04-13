@@ -46,7 +46,10 @@ from utils.btn import (
 
 import ui.network as network
 
-URL = "https://excel-api.fly.dev"
+if os.environ.get("SERVER_URL"):
+    URL = os.environ.get("SERVER_URL")
+else:
+    URL = "https://excel-api.fly.dev"
 DATA = {}
 
 
