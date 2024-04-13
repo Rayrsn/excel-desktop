@@ -296,8 +296,10 @@ class MainWindow(QMainWindow):
         if "id" in headers:
             headers.remove("id")
         # replace ID with row
-        index = headers.index("ID")
-        headers[index] = "row"
+        # Check if "ID" is in headers
+        if "ID" in headers:
+            index = headers.index("ID")
+            headers[index] = "row"
         
         data = {
             "sheetname": sheet_name,
