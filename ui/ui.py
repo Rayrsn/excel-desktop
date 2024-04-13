@@ -176,7 +176,7 @@ class MainWindow(QMainWindow):
             # Create a new QTableWidget for this tab
             tableWidget = QTableWidget()
             tableWidget.setRowCount(network.get_row_count(json_data, sheet))
-            tableWidget.setColumnCount(network.get_column_count(json_data, sheet)-1)
+            tableWidget.setColumnCount(network.get_column_count(json_data, sheet))
             # Enable sorting
             tableWidget.setSortingEnabled(True)
             # set default sorting by first column
