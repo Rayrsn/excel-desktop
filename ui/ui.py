@@ -5,7 +5,7 @@
 #     pyside6-uic form.ui -o ui_form.py, or
 #     pyside2-uic form.ui -o ui_form.py
 
-import sys
+import sys, os
 
 from PySide6.QtWidgets import (
     QApplication,
@@ -311,7 +311,6 @@ class MainWindow(QMainWindow):
             self.loadJsonData(URL)
         else:
             self.showAlarm("Error", "Failed to update the cell!")
-            print(response.text)
         
     
     def loadReport(self, url, name):
