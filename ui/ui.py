@@ -153,6 +153,11 @@ class MainWindow(QMainWindow):
         tab.setLayout(hboxLayout)
 
     def loadJsonDataFinished(self, data):
+        if data == "Error" or data is None:
+            self.showAlarm("Network error", "Failed to fetch data from the server!")
+            # close loading dialog
+            self.loading_dialog.close()
+            return
         global DATA
         DATA = data
         json_data = data
@@ -807,8 +812,16 @@ class FetchDataThread(QThread):
         self.url = url
 
     def run(self):
-        data = network.get_data(self.url)
-        self.dataReady.emit(data)
+        try:
+            data = network.get_data(self.url)
+            
+            global DATA
+            DATA = data
+            
+            self.dataReady.emit(data)
+        except Exception as e:
+            print(f"Error: {e}")
+            self.dataReady.emit("Error")
 
 
 class LoadingDialog(QDialog):
