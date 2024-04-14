@@ -52,7 +52,7 @@ if os.environ.get("SERVER_URL"):
 else:
     URL = "https://excel-api.fly.dev"
 DATA = {}
-
+LAST_PAGE = 0
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -70,7 +70,7 @@ class MainWindow(QMainWindow):
         self.ui.exitbutton.clicked.connect(self.closeApplication)
         # DISABLE IMPORT BUTTON ###################
         # self.ui.importbutton.clicked.connect(self.openFile)
-        self.ui.refreshbutton.clicked.connect(lambda: self.loadJsonData(URL))
+        self.ui.refreshbutton.clicked.connect(lambda: self.loadJsonData(URL, last_page=True))
         self.ui.exportbutton.clicked.connect(lambda: self.genDocsBtn(DATA))
         self.ui.newentrybutton.clicked.connect(self.showNewEntryDialog)
         self.ui.deleteentrybutton.clicked.connect(self.showDeleteEntryDialog)
@@ -225,11 +225,14 @@ class MainWindow(QMainWindow):
             # on cell change print the changed cell
             tableWidget.cellChanged.connect(self.handleCellChanged)
 
-    def loadJsonData(self, url):
+    def loadJsonData(self, url, last_page=False):
         """
         load JSON data into qt tables
         """
-        
+        if last_page:
+            global LAST_PAGE
+            # get the current page to the last page
+            LAST_PAGE = self.ui.tabWidget.currentIndex()
         # make a loading dialog
         self.loading_dialog = LoadingDialog(self)
     
@@ -239,15 +242,9 @@ class MainWindow(QMainWindow):
         
         self.loading_dialog.exec()
         
-        # Fetch the data
-        global DATA
-        try:
-            json_data = network.get_data(url)
-            DATA = json_data
-        except Exception as e:
-            print(f"Error: {e}")
-            self.showAlarm("Network error", "Failed to fetch data from the server!")
-            return
+        # switch to the last page
+        if last_page:
+            self.ui.tabWidget.setCurrentIndex(LAST_PAGE)
 
     def addSheetToTabs(self, sheet_name, data):
         # Create a new tab
@@ -311,7 +308,7 @@ class MainWindow(QMainWindow):
         )
         
         if response.status_code == 200:
-            self.loadJsonData(URL)
+            self.loadJsonData(URL, last_page=True)
         else:
             self.showAlarm("Error", "Failed to update the cell!")
         
@@ -426,7 +423,7 @@ class MainWindow(QMainWindow):
             if response.status_code == 200:
                 self.showSuccess("Success", "New entry added successfully!")
                 # refresh data
-                self.loadJsonData(URL)
+                self.loadJsonData(URL, last_page=True)
                 return True
             else:
                 self.showAlarm("Error", "Failed to add new entry!")
@@ -716,7 +713,7 @@ class DeleteEntryDialog(QDialog):
         if response.status_code == 200:
             parent.showSuccess("Success", "Entry deleted successfully!")
             # Refresh the data
-            parent.loadJsonData(URL)
+            parent.loadJsonData(URL, last_page=True)
         else:
             parent.showAlarm("Error", "Failed to delete the entry!")
             print(response.text)
