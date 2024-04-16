@@ -344,6 +344,10 @@ class MainWindow(QMainWindow):
                 table.set_data(data, name="legal-aid")
             elif name == "bail-refused":
                 table.set_data(data, name="bail-refused")
+            elif name == "stage":
+                if table.set_data(data, name="stage") == False:
+                    self.showAlarm("Error", "No data to display!")
+                    return
             else:
                 if table.set_data(data) == False:
                     self.showAlarm("Error", "No data to display!")
@@ -1046,10 +1050,15 @@ class TableViewer(QTableWidget):
                             "HMP", "Prison_Number", "National_Insurance_Number", "Legal_Aid", "Court"]
             self.setColumnCount(len(table_headers))
             self.setHorizontalHeaderLabels(table_headers)
-        else:
+        elif name == "stage":
             # check to see if all the keys under data are empty if yes then return false
             if all([data[key] == [] for key in data]):
                 return False
+            headers = list(data[0].keys())
+            self.setColumnCount(len(headers))
+            # Set the headers
+            self.setHorizontalHeaderLabels(headers)
+        else:
             headers = list(data[0].keys())
             self.setColumnCount(len(headers))
             # Set the headers
