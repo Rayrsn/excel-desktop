@@ -344,10 +344,8 @@ class MainWindow(QMainWindow):
                 table.set_data(data, name="legal-aid")
             elif name == "bail-refused":
                 table.set_data(data, name="bail-refused")
-            elif name == "stage":
-                if table.set_data(data, name="stage") == False:
-                    self.showAlarm("Error", "No data to display!")
-                    return
+            elif "stage" in name:
+                table.set_data(data, name=name)
             else:
                 if table.set_data(data) == False:
                     self.showAlarm("Error", "No data to display!")
@@ -806,11 +804,32 @@ class OperationsDialog(QDialog):
             lambda: (parent.loadReport(url, "non-zero"), self.accept())
         )
 
-        self.stage_reports_button = QPushButton("Stage Reports")
-        self.stage_reports_button.setMinimumSize(100, 40)
-        self.layout.addWidget(self.stage_reports_button, 3, 0)
-        self.stage_reports_button.clicked.connect(
-            lambda: (parent.loadReport(url, "stage"), self.accept())
+        self.stage_reports_1_button = QPushButton("Stage Reports 1")
+        self.stage_reports_1_button.setMinimumSize(100, 40)
+        self.layout.addWidget(self.stage_reports_1_button, 3, 0)
+        self.stage_reports_1_button.clicked.connect(
+            lambda: (parent.loadReport(url, "stage/1"), self.accept())
+        )
+        
+        self.stage_reports_2_button = QPushButton("Stage Reports 2")
+        self.stage_reports_2_button.setMinimumSize(100, 40)
+        self.layout.addWidget(self.stage_reports_2_button, 3, 1)
+        self.stage_reports_2_button.clicked.connect(
+            lambda: (parent.loadReport(url, "stage/2"), self.accept())
+        )
+        
+        self.stage_reports_3_button = QPushButton("Stage Reports 3")
+        self.stage_reports_3_button.setMinimumSize(100, 40)
+        self.layout.addWidget(self.stage_reports_3_button, 4, 0)
+        self.stage_reports_3_button.clicked.connect(
+            lambda: (parent.loadReport(url, "stage/3"), self.accept())
+        )
+        
+        self.stage_reports_4_button = QPushButton("Stage Reports 4")
+        self.stage_reports_4_button.setMinimumSize(100, 40)
+        self.layout.addWidget(self.stage_reports_4_button, 4, 1)
+        self.stage_reports_4_button.clicked.connect(
+            lambda: (parent.loadReport(url, "stage/4"), self.accept())
         )
 
 class FetchDataThread(QThread):
@@ -881,19 +900,26 @@ class TableViewer(QTableWidget):
                             "HMP", "Prison_Number", "National_Insurance_Number", "Legal_Aid", "Court"]
             self.setColumnCount(len(table_headers))
             self.setHorizontalHeaderLabels(table_headers)
-        elif name == "stage":
-            # check to see if all the keys under data are empty if yes then return false
-            if all([data[key] == [] for key in data]):
+        elif "stage" in name:
+            try:
+                # get the first entry in the dictionary
+                data = data[next(iter(data))]
+                headers = list(data[0].keys())
+                self.setColumnCount(len(headers))
+                # Set the headers
+                self.setHorizontalHeaderLabels(headers)
+            except Exception as e:
+                print(f"Error: {e}")
                 return False
-            headers = list(data[0].keys())
-            self.setColumnCount(len(headers))
-            # Set the headers
-            self.setHorizontalHeaderLabels(headers)
         else:
-            headers = list(data[0].keys())
-            self.setColumnCount(len(headers))
-            # Set the headers
-            self.setHorizontalHeaderLabels(headers)
+            try:
+                headers = list(data[0].keys())
+                self.setColumnCount(len(headers))
+                # Set the headers
+                self.setHorizontalHeaderLabels(headers)
+            except Exception as e:
+                print(f"Error: {e}")
+                return False
         
         if name == "bail-refused":
             row_count = 0
