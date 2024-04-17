@@ -5,6 +5,7 @@ PIP = $(VENV)/bin/pip
 
 SITE = https://excel-api.fly.dev
 LOCAL_SERVER = http://localhost:1212
+RE_SITE = http://localhost:1212
 PORT = 1212
 
 .DEFAULT_GOAL := run
@@ -52,3 +53,7 @@ clean:
 		@echo "clean directories ..."
 		@find . -name "*.pyc" -delete
 
+refresh-db: 
+	  @echo "refresh $(RE_SITE) db ..."
+		@curl -X GET -sL $(RE_SITE)/clear-database/
+		@curl -X GET -sL $(RE_SITE)/import-excel-data/
