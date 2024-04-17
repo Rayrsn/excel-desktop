@@ -657,9 +657,12 @@ class DeleteEntryDialog(QDialog):
         self.sheetLabel = QLabel("Select Sheet:", self)
         self.layout.addWidget(self.sheetLabel)
 
-        # Add QComboBox for sheet selection
+         # Add QComboBox for sheet selection
         self.sheetComboBox = QComboBox(self)
         self.sheetComboBox.addItems(headers)
+        self.sheetComboBox.setCurrentText(
+            parent.ui.tabWidget.tabText(parent.ui.tabWidget.currentIndex())
+        )
         self.layout.addWidget(self.sheetComboBox)
 
         # Add QLabel for row number
