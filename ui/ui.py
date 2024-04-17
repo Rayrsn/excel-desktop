@@ -948,7 +948,6 @@ class TableViewer(QTableWidget):
 def run():
     app = QApplication(sys.argv)
     widget = MainWindow()
-    # NOTE: auto load excel file for debug
     widget.openFile()
     widget.showMaximized()
     sys.exit(app.exec())
