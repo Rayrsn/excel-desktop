@@ -324,6 +324,9 @@ class MainWindow(QMainWindow):
         url = f"{url}/operations/{name}"
         try:
             data = network.get_data(url)
+            if data == None:
+                self.showAlarm("empty table", "No data to display!")
+                return
             DATA = data
         except Exception as e:
             print(f"Error: {e}")
@@ -345,6 +348,12 @@ class MainWindow(QMainWindow):
             elif name == "bail-refused":
                 table.set_data(data, name="bail-refused")
             elif "stage" in name:
+                table.set_data(data, name=name)
+            elif name == "monthly":
+                table.set_data(data, name=name)
+            elif name == "weekly":
+                table.set_data(data, name=name)
+            elif name == "empty-counsel":
                 table.set_data(data, name=name)
             else:
                 if table.set_data(data) == False:

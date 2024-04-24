@@ -5,6 +5,8 @@ import requests
 def get_data(url):
     try:
         response = requests.get(url, timeout=5)
+        if response.content == b'[]':
+            return None
     except Exception as e:
         print(e)
         return None
