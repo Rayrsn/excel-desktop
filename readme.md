@@ -1,3 +1,5 @@
+[![CI/CD - Build and Test](https://github.com/Rayrsn/excel-desktop/actions/workflows/ci-cd.yml/badge.svg?event=push)](https://github.com/Rayrsn/excel-desktop/actions/workflows/ci-cd.yml)
+
 changed loadExcelData to loadJsonData (uses the same logic, but modified to work with json)
 
 added addSheetToTabs (use cases: adding a report tab in the program)
