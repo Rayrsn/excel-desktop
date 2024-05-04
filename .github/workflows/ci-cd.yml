@@ -84,22 +84,14 @@ jobs:
           name: ${{ runner.os }}-debug-executable
           path: dist/ # Replace with the directory containing your debug executable
       
-      - name: Delete dist directory (Windows)
-        if: runner.os == 'Windows'
-        run: rmdir /S /Q dist
-      
-      - name: Delete dist directory (Non-Windows)
-        if: runner.os != 'Windows'
-        run: rm -rf dist
-      
       - name: Build onedir executable with PyInstaller (Windows)
         if: runner.os == 'Windows'
-        run: pyinstaller --onedir --windowed --icon=bkp_logo.jpg --add-data 'bkp_logo.jpg;.' main.py
+        run: pyinstaller -y --onedir --windowed --icon=bkp_logo.jpg --add-data 'bkp_logo.jpg;.' main.py
       
       - name: Build onedir executable with PyInstaller (Non-Windows)
         if: runner.os != 'Windows'
-        run: pyinstaller --onedir --windowed --icon=bkp_logo.jpg --add-data 'bkp_logo.jpg:.' main.py
-      
+        run: pyinstaller -y --onedir --windowed --icon=bkp_logo.jpg --add-data 'bkp_logo.jpg:.' main.py
+        
       - name: Upload onedir artifacts (optional)
         uses: actions/upload-artifact@v3
         with:
